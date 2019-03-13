@@ -19,9 +19,16 @@ from zipfile import ZipFile
 #   - usuwanie i dodawanie wybranych wierzchołków;
 #   - usuwanie, dodawanie i sprawdzanie, czy wybrane krawędzie istnieją.
 # Tester kończy pracę w momencie stwierdzenia pierwszego błędu lub poprawnego zaliczenia całości.
+from simple_graphs import ListaSasiedztwa as TestedGraph
+for x in dir( TestedGraph ):
+    print(x)
+cos = TestedGraph("@")
+print("DotarlemTuChociaz?")
+print("test orderu" + str(cos.order()))
 
 try:
-    exec( "from {0} import {1} as TestedGraph".format( argv[2], argv[1] ) )
+    #exec( "from {0} import {1} as TestedGraph".format( argv[2], argv[1] ) )
+    exec( "from {0} import {1} as TestedGraph".format( "simple_graphs", "ListaSasiedztwa" ) )
     print( "Przygotowuję dane testowe. Proszę czekać." )
     with ZipFile( "graphs.zip" ) as data:
         graphs = "\n".join( [data.open( name ).read().decode() for name in data.namelist()] ).split()

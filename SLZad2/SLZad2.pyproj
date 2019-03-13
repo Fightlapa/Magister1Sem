@@ -4,13 +4,18 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ed03a732-56a9-4be9-88f2-91d68979c7b6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SLZad2.py</StartupFile>
+    <StartupFile>test.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>SLZad2</Name>
     <RootNamespace>SLZad2</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>Global|PythonCore|3.6</InterpreterId>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>build</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +32,15 @@
     <Compile Include="graphs.py" />
     <Compile Include="SLZad2.py" />
     <Compile Include="test.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GraphsListaSasiedztwa.cpp" />
+    <Content Include="ListaSasiedztwa.cpp" />
+    <Content Include="ListaSasiedztwaCpp.h" />
+    <Content Include="ListaSasiedztwaToPython.cpp" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
