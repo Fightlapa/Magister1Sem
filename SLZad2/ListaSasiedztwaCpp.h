@@ -12,11 +12,11 @@ public:
     class NoVerticesError;
     // Wyjątek pojawiający się przy próbie dodania 17 - tego wierzchołka.
     class TooManyVerticesError;
-    int __order;
+    size_t __order;
     std::vector<std::vector<int>> AdjencyList;
 
     // Tworzy graf o podanej reprezentacji tekstowej(domyślnie: 1 - wierzchołkowy graf pusty).
-    ListaSasiedztwaCpp(std::string);
+    ListaSasiedztwaCpp(const char*);
 
     // Zwraca liczbę wierzchołków grafu.
     int order();
@@ -41,7 +41,7 @@ public:
     void deleteEdge(int, int);
 
     // Przekształca reprezentację tekstową grafu w graf.
-    void fromString(string);
+    void fromString(const char* string);
 
 
     // Przekształca graf w reprezentację tekstową.

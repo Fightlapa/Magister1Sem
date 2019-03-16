@@ -10,228 +10,264 @@
 #include <Python.h>
 #include "structmember.h"
 #include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <algorithm>
+
 //#include "ListaSasiedztwaCpp.h"
+#define ERROR return;
+
+PyObject *G6Error;
+PyObject *NoVerticesError;
+PyObject *TooManyVerticesError;
 
 typedef struct {
     PyObject_HEAD
-    Py_ssize_t q__order;  /* the maximum number of elements in q_elements */
-    PyObject* q_elements;  /* the elements in the queue as a Python list */
+    size_t __order;  /* the maximum number of elements in q_elements */
+    std::vector<std::vector<int>> AdjencyList;  /* the elements in the queue as a Python list */
 } ListaSasiedztwa;
 
 /* function implementations */
-
-PyObject* order(PyObject* self, PyObject* args)
+static
+PyObject* order(ListaSasiedztwa* self)
 {
+    return PyLong_FromSize_t(self->__order);
+}
 
-    // Get the pointer to `ListaSasiedztwa` object
-    //ListaSasiedztwa* graph = (ListaSasiedztwa*)PyCapsule_GetPointer(self, "ListaSasiedztwaPtr");
-    ListaSasiedztwa* graph = (ListaSasiedztwa*)(self);
+static
+void addVertex(ListaSasiedztwa* self, PyObject* args)
+{
+    int u, v;
+    // Process arguments
+    PyArg_ParseTuple(args, "ii",
+        &u,
+        &v);
 
+    if (self->__order == 16)
+    {
+        PyErr_SetString(TooManyVerticesError, "System command failed");
+        ERROR
+    }
+    std::vector<int> vertexList;
+    self->AdjencyList.push_back(vertexList);
+}
+
+static
+void deleteVertex(ListaSasiedztwa* self, PyObject* args)
+{
+    int u, v;
+    // Process arguments
+    PyArg_ParseTuple(args, "ii",
+        &u,
+        &v);
+
+    if (self->__order == 1)
+    {
+        PyErr_SetString(NoVerticesError, "System command failed");
+        ERROR
+    }
+    for (std::vector<int> vertexAdjencyList : self->AdjencyList)
+    {
+        vertexAdjencyList.erase(remove(vertexAdjencyList.begin(), vertexAdjencyList.end(), u), vertexAdjencyList.end());
+    }
+    std::vector<std::vector<int>>::iterator it;
+    it = self->AdjencyList.begin();
+    advance(it, u);
+    self->AdjencyList.erase(it);
+}
+
+static
+PyObject* isEdge(ListaSasiedztwa* self, PyObject* args)
+{
+    int u, v;
+    // Process arguments
+    PyArg_ParseTuple(args, "ii",
+        &u,
+        &v);
+
+    if (std::find(self->AdjencyList.at(u).begin(), self->AdjencyList.at(u).end(), v) != self->AdjencyList.at(u).end())
+        return Py_True;
+    return Py_False;
+}
+
+static
+void addEdge(ListaSasiedztwa* self, PyObject* args)
+{
+    int u, v;
+    // Process arguments
+    PyArg_ParseTuple(args, "ii",
+        &u,
+        &v);
+
+    self->AdjencyList.at(u).push_back(v);
+    self->AdjencyList.at(v).push_back(u);
+
+}
+static
+void deleteEdge(ListaSasiedztwa* self, PyObject* args)
+{
+    int u, v;
+    // Process arguments
+    PyArg_ParseTuple(args, "ii",
+        &u,
+        &v);
+
+    self->AdjencyList.at(u).erase(remove(self->AdjencyList.at(u).begin(), self->AdjencyList.at(u).end(), v), self->AdjencyList.at(u).end());
+    self->AdjencyList.at(v).erase(remove(self->AdjencyList.at(v).begin(), self->AdjencyList.at(v).end(), u), self->AdjencyList.at(v).end());
+}
+
+static
+void fromString(ListaSasiedztwa* self, PyObject* args)
+{
+    // Arguments passed from Python
+    const char* text;    // ListaSasiedztwa color
+
+                         // Process arguments passes from Python
+    try
+    {
+        PyArg_ParseTuple(args, "s",
+            &text);
+    }
+    catch (...)
+    {
+        std::cout << "ParsingTuple failed in fromString";
+    }
+
+
+    int k = 0;
+    self->__order = text[0] - 63;
+    if (self->__order < 1 || self->__order > 16)
+    {
+        std::stringstream ss;
+        ss << "wrong character: " << std::to_string(self->__order + 63);
+        const char* converted = ss.str().c_str();
+        //throw G6Error(converted);
+    }
+
+    for (int i = 0; i < self->__order; i++)
+    {
+        std::vector<int> newList;
+        self->AdjencyList.push_back(newList);
+    }
+
+    for (int charIndex = 1; charIndex < self->__order; charIndex++) {
+        int c = text[charIndex] - 63;
+
+        for (int v = 0; v < self->__order; v++)
+        {
+            for (int u = 0; u < v; u++)
+            {
+                if (k == 0)
+                    c = text[charIndex] - 63;
+                if (c < 0 || c > 63)
+                {
+                    std::stringstream ss;
+                    ss << "wrong character: " << std::to_string(c + 63);
+                    const char* converted = ss.str().c_str();
+                    //throw G6Error(converted);
+                }
+                k = 6;
+                k -= 1;
+                if ((c & (1 << k)) != 0)
+                {
+                    addEdge(self, Py_BuildValue("ii", u,v));
+                }
+
+            }
+        }
+    }
 
     // Return nothing
-    return Py_BuildValue("i", graph->q__order);
+    return;
 }
-
-//void addVertex(ListaSasiedztwa* self, PyObject* args)
-//{
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    unsigned int iKM_;       // Kilomters to drive
-//
-//                             // Process arguments
-//    PyArg_ParseTuple(args, "",
-//        &graphCapsule);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//    // Call `drive` function
-//    graph->addVertex();
-//
-//    // Return nothing
-//    return;
-//}
-//
-//void deleteVertex(ListaSasiedztwa* self, PyObject* args)
-//{
-//
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u;
-//                             // Process arguments
-//    PyArg_ParseTuple(args, "i",
-//        &graphCapsule,
-//        &u);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//    // Call `print_mileage` function
-//    graph->deleteVertex(u);
-//
-//    // Return nothing
-//    return;
-//}
-//
-//bool isEdge(ListaSasiedztwa* self, PyObject* args)
-//{
-//
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u,v;
-//    // Process arguments
-//    PyArg_ParseTuple(args, "ii",
-//        &graphCapsule,
-//        &u,
-//        &v);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//    // Return nothing
-//    return graph->isEdge(u, v);
-//}
-//
-//void addEdge(ListaSasiedztwa* self, PyObject* args)
-//{
-//
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u, v;
-//    // Process arguments
-//    PyArg_ParseTuple(args, "ii",
-//        &graphCapsule,
-//        &u,
-//        &v);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//
-//    graph->addEdge(u, v);
-//
-//    // Return nothing
-//    return;
-//}
-//
-//void deleteEdge(ListaSasiedztwa* self, PyObject* args)
-//{
-//
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u, v;
-//    // Process arguments
-//    PyArg_ParseTuple(args, "ii",
-//        &graphCapsule,
-//        &u,
-//        &v);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//
-//    graph->deleteEdge(u, v);
-//}
-//
-//void fromString(ListaSasiedztwa* self, PyObject* args)
-//{
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    // Arguments passed from Python
-//    const char* text;    // ListaSasiedztwa color
-//
-//                         // Process arguments passes from Python
-//    PyArg_ParseTuple(args, "s",
-//        &graphCapsule,
-//        &text);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//
-//    graph->fromString(text);
-//
-//    // Return nothing
-//    return;
-//}
-//
-//const char* __str__(ListaSasiedztwa* self, PyObject* args)
-//{
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//                              // Arguments passed from Python
-//    const char* text;    // ListaSasiedztwa color
-//
-//                         // Process arguments passes from Python
-//    PyArg_ParseTuple(args, "",
-//        &graphCapsule);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//
-//    // Return nothing
-//    return graph->__str__();
-//}
-//
-//bool __eq__(ListaSasiedztwa* self, PyObject* args)
-//{
-//
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    PyObject* other;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u, v;
-//    // Process arguments
-//    PyArg_ParseTuple(args, "O",
-//        &graphCapsule,
-//        &other);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//    ListaSasiedztwa* otherGraph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(other, "ListaSasiedztwaPtr");
-//
-//    // Return nothing
-//    return graph->__eq__(*otherGraph);
-//}
-//
-//bool __ne__(ListaSasiedztwa* self, PyObject* args)
-//{
-//    // Arguments passed from Python
-//    PyObject* graphCapsule;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    PyObject* other;   // Capsule with the pointer to `ListaSasiedztwa` object
-//    int u, v;
-//    // Process arguments
-//    PyArg_ParseTuple(args, "O",
-//        &graphCapsule,
-//        &other);
-//
-//    // Get the pointer to `ListaSasiedztwa` object
-//    ListaSasiedztwaCpp* graph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(graphCapsule, "ListaSasiedztwaPtr");
-//    ListaSasiedztwaCpp* otherGraph = (ListaSasiedztwaCpp*)PyCapsule_GetPointer(other, "ListaSasiedztwaPtr");
-//
-//    // Return nothing
-//    return graph->__ne__(*otherGraph);
-//}
-
-
-static int
-ListaSasiedztwa_tp_traverse(ListaSasiedztwa *self, visitproc visit, void *arg)
+static
+PyObject* __str__(ListaSasiedztwa* self, PyObject* args)
 {
-    Py_VISIT(self->q__order);
-    Py_VISIT(self->q_elements);
-    return 0;
+    int k = 0;
+    int c = 0;
+    char* text = new char[1];
+    char* char_type = new char[std::to_string(self->__order + 63).length()];
+    strcpy(char_type, std::to_string(self->__order + 63).c_str());
+
+    for (int v = 0; v < self->__order; v++)
+    {
+        for (int u = 0; u < v; u++)
+        {
+            if (isEdge(self, Py_BuildValue("ii", u, v)))
+            {
+                c |= (1 << k);
+            }
+            if (k == 0)
+            {
+                text = strcat(text, std::to_string(c + 63).c_str());
+                k = 6;
+                c = 0;
+            }
+            k -= 1;
+        }
+    }
+    if (k != 5)
+        text = strcat(text, std::to_string(c + 63).c_str());
+    return PyUnicode_FromString(text);
 }
 
-static int
-ListaSasiedztwa_tp_clear(ListaSasiedztwa *self)
+static
+PyObject* __eq__(ListaSasiedztwa* self, PyObject* args)
 {
-    Py_CLEAR(self->q__order);
-    Py_CLEAR(self->q_elements);
-    return 0;
+
+    PyObject* other;   // Capsule with the pointer to `ListaSasiedztwa` object
+    // Process arguments
+    PyArg_ParseTuple(args, "O",
+        &other);
+
+    ListaSasiedztwa* otherGraph = (ListaSasiedztwa*)PyCapsule_GetPointer(other, "ListaSasiedztwaPtr");
+
+    //PyLongObject* thisOrder = (PyLongObject*)(PyLong_FromSize_t(self->__order));
+
+    if (self->__order != otherGraph->__order)
+        return Py_False;
+
+    for (int v = 0; v < self->__order; v++)
+    {
+        for (int u = 0; u < v; u++)
+        {
+            if (isEdge(self, Py_BuildValue("ii", u, v)) != isEdge(otherGraph, Py_BuildValue("ii", u, v)))
+            {
+                return Py_False;
+            }
+        }
+    }
+    return Py_True;
 }
+static
+PyObject* __ne__(ListaSasiedztwa* self, PyObject* args)
+{
+
+    if (__eq__(self, args))
+        return Py_False;
+    Py_True;
+}
+
+
+//static int
+//ListaSasiedztwa_tp_traverse(ListaSasiedztwa *self, visitproc visit, void *arg)
+//{
+//    Py_VISIT(self->__order);
+//    Py_VISIT(self->AdjencyList);
+//    return 0;
+//}
+
+//static int
+//ListaSasiedztwa_tp_clear(ListaSasiedztwa *self)
+//{
+//    Py_CLEAR(self->__order);
+//    Py_CLEAR(self->AdjencyList);
+//    return 0;
+//}
 
 static void delete_object(ListaSasiedztwa* self)
 {
-    ListaSasiedztwa_tp_clear(self);
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -244,46 +280,46 @@ PyMethodDef cListaSasiedztwaFunctions[] =
     */
 
 { "order",                     // C++/Py wrapper for `fuel_up`
-order, METH_VARARGS,
+(PyCFunction)order, METH_NOARGS,
 "Fuel up graph" },
 
-//{ "addVertex",                       // C++/Py wrapper for `drive`
-//addVertex, METH_VARARGS,
-//"Drive the graph" },
-//
-//{ "deleteVertex",               // C++/Py wrapper for `print_mileage`
-//deleteVertex, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "isEdge",               // C++/Py wrapper for `print_mileage`
-//isEdge, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "addEdge",               // C++/Py wrapper for `print_mileage`
-//addEdge, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "deleteEdge",               // C++/Py wrapper for `print_mileage`
-//deleteEdge, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "fromString",               // C++/Py wrapper for `print_mileage`
-//fromString, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "__str__",               // C++/Py wrapper for `print_mileage`
-//__str__, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "__eq__",               // C++/Py wrapper for `print_mileage`
-//__eq__, METH_VARARGS,
-//"Print mileage of the graph" },
-//
-//{ "__ne__",               // C++/Py wrapper for `print_mileage`
-//__ne__, METH_VARARGS,
-//"Print mileage of the graph" },
+{ "addVertex",                       // C++/Py wrapper for `drive`
+(PyCFunction)addVertex, METH_VARARGS,
+"Drive the graph" },
 
-{ NULL, NULL, 0, NULL }      // Last function description must be empty.
+{ "deleteVertex",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)deleteVertex, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "isEdge",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)isEdge, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "addEdge",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)addEdge, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "deleteEdge",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)deleteEdge, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "fromString",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)fromString, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "__str__",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)__str__, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "__eq__",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)__eq__, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ "__ne__",               // C++/Py wrapper for `print_mileage`
+(PyCFunction)__ne__, METH_VARARGS,
+"Print mileage of the graph" },
+
+{ NULL }      // Last function description must be empty.
                              // Otherwise, it will create seg fault while
                              // importing the module.
 };
@@ -312,18 +348,34 @@ struct PyModuleDef cSimpleGraphsModule =
 };
 
 
-static PyMemberDef Foo_members[] = {
-    { "q__order", T_INT, offsetof(ListaSasiedztwa, q__order), 0, "order attribute" },
-{ "q_elements", T_OBJECT_EX, offsetof(ListaSasiedztwa, q_elements), 0, "list attribute" },
-{ NULL }
-};
+//static PyMemberDef Foo_members[] = {
+//    { "__order", T_INT, offsetof(ListaSasiedztwa, __order), 0, "order attribute" },
+//{ "AdjencyList", T_OBJECT_EX, offsetof(ListaSasiedztwa, AdjencyList), 0, "list attribute" },
+//{ NULL }
+//};
 
 
-static PyObject* ListaSasiedztwa_tp_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+static int ListaSasiedztwa_tp_init(ListaSasiedztwa *self, PyObject *args)
+{
+    fromString(self, args);
+    return 0;
+    //if (PyArg_ParseTuple(args, "s", text)) {
+    //    fromString(self, Py_BuildValue("s", text));
+    //    return 0;
+    //}
+    //else
+    //{
+    //    std::cout << "ParsingTuple failed in fromString";
+    //}
+}
 
+static PyObject *ListaSasiedztwa_tp_new(
+    PyTypeObject *type, PyObject *args) {
+    return type->tp_alloc(type, 0);
+}
 
 static PyTypeObject ListaSasiedztwaType = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "simple_graphs.ListaSasiedztwa",                              /* tp_name */ /* For printing, in format "<module>.<name>" */
     sizeof(ListaSasiedztwa),                              /* tp_basicsize */
     0,                                          /* tp_itemsize */
@@ -338,14 +390,16 @@ static PyTypeObject ListaSasiedztwaType = {
     0,                                          /* tp_as_mapping */
     0,                                          /* tp_hash */
     0,                                          /* tp_call */
-    0,                                          /* tp_str */
+    (reprfunc)__str__,                                          /* tp_str */
     0,                                          /* tp_getattro */
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                         /* tp_flags */
     0,                                  /* tp_doc */
-    (traverseproc)ListaSasiedztwa_tp_traverse,              /* tp_traverse */
-    (inquiry)ListaSasiedztwa_tp_clear,                      /* tp_clear */
+    //(traverseproc)ListaSasiedztwa_tp_traverse,              /* tp_traverse */
+    //(inquiry)ListaSasiedztwa_tp_clear,                      /* tp_clear */
+    0,              /* tp_traverse */
+    0,                      /* tp_clear */
     0,                                          /* tp_richcompare */
     0,                                          /* tp_weaklistoffset */
     0,                                          /* tp_iter */
@@ -358,21 +412,11 @@ static PyTypeObject ListaSasiedztwaType = {
     0,                                          /* tp_descr_get */
     0,                                          /* tp_descr_set */
     0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
+    (initproc)ListaSasiedztwa_tp_init,                                          /* tp_init */
     0,                                          /* tp_alloc */
     (newfunc)ListaSasiedztwa_tp_new,                        /* tp_new */
 };
 
-
-static PyObject* ListaSasiedztwa_tp_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
-    ListaSasiedztwa *self = (ListaSasiedztwa *)ListaSasiedztwaType.tp_new(type, args, kwargs);
-    if (!self) {
-        return NULL;
-    }
-
-    return (PyObject *)self;
-}
 
 /* Add a type to a module */
 int
@@ -389,22 +433,34 @@ PyModule_AddType(PyObject *module, const char *name, PyTypeObject *type)
     return 0;
 }
 static PyObject* ListaSasiedztwaAtrybutModulu;
+
 PyMODINIT_FUNC PyInit_simple_graphs(void)
 {
-    /*
-    *   Function which initialises the Python module.
-    *
-    *   Note:  This function must be named "PyInit_MODULENAME",
-    *          where "MODULENAME" is the name of the module.
-    *
-    */
-    PyObject *m = PyModule_Create(&cSimpleGraphsModule);
-    //ListaSasiedztwaType.tp_new = PyType_GenericNew;
-    //PyModule_AddType(m, "ListaSasiedztwa", &ListaSasiedztwaType);
-    //ListaSasiedztwaAtrybutModulu = PyCapsule_New(&ListaSasiedztwaAtrybutModulu, "simple_graphs.ListaSasiedztwa", NULL);
-    //PyObject * ListaSasiedztwaAtrybutModuluCapsuled = ListaSasiedztwa_tp_new(&ListaSasiedztwaAtrybutModulu, nullptr, nullptr);
-    ListaSasiedztwaType.tp_new = PyType_GenericNew;
-    PyModule_AddType(m, "ListaSasiedztwa", &ListaSasiedztwaType);
+    if (PyType_Ready(&ListaSasiedztwaType) < 0) return NULL;
+    PyObject* m = PyModule_Create(&cSimpleGraphsModule);
+    if (m == NULL) return NULL;
+
+    G6Error = PyErr_NewException("basic_graphs.G6Error", NULL, NULL);
+    Py_INCREF(G6Error);
+    PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "G6Error", G6Error);
+    //PyModule_AddObject(m, "error", G6Error);
+
+
+    NoVerticesError = PyErr_NewException("basic_graphs.NoVerticesError", NULL, NULL);
+    Py_INCREF(NoVerticesError);
+    PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "NoVerticesError", NoVerticesError);
+    //PyModule_AddObject(m, "error", NoVerticesError);
+
+
+    TooManyVerticesError = PyErr_NewException("basic_graphs.TooManyVerticesError", NULL, NULL);
+    Py_INCREF(TooManyVerticesError);
+    PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "TooManyVerticesError", TooManyVerticesError);
+    //PyModule_AddObject(m, "error", TooManyVerticesError);
+
+
+    Py_INCREF(&ListaSasiedztwaType);
+    PyModule_AddObject(m, "ListaSasiedztwa",
+        (PyObject *)&ListaSasiedztwaType);
 
     return m;
 }

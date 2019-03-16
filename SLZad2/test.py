@@ -22,7 +22,10 @@ from zipfile import ZipFile
 from simple_graphs import ListaSasiedztwa as TestedGraph
 for x in dir( TestedGraph ):
     print(x)
-cos = TestedGraph("@")
+print("Split")
+for x in dir( Graph ):
+    print(x)
+cos = TestedGraph("A?")
 print("DotarlemTuChociaz?")
 print("test orderu" + str(cos.order()))
 

@@ -5,6 +5,7 @@
 #include <sstream>
 #include "ListaSasiedztwaCpp.h"
 
+
 // Wyjątek pojawiający się przy próbie konwersji z błędnej reprezentacji tekstowej.
 class ListaSasiedztwaCpp::G6Error : std::exception
 {
@@ -31,7 +32,7 @@ public:
 };
 
 // Tworzy graf o podanej reprezentacji tekstowej(domyślnie: 1 - wierzchołkowy graf pusty).
-ListaSasiedztwaCpp::ListaSasiedztwa(std::string text = "@")
+ListaSasiedztwaCpp::ListaSasiedztwaCpp(const char* text = "@")
 {
     fromString(text);
 }
@@ -97,32 +98,33 @@ void ListaSasiedztwaCpp::deleteEdge(int u, int v)
 
 
 // Przekształca reprezentację tekstową grafu w graf.
-void ListaSasiedztwaCpp::fromString(std::string text)
+void ListaSasiedztwaCpp::fromString(const char* text)
 {
     int k = 0;
-    for (int charIndex = 0; charIndex < __order; charIndex++) {
-        int c = text.at(charIndex) - 63;
-        if (c < 1 || c > 16)
-        {
-            std::stringstream ss;
-            ss << "wrong character: " << to_string(c + 63);
-            const char* converted = ss.str().c_str();
-            throw G6Error(converted);
-        }
+    __order = text[0] - 63;
+    if (__order < 1 || __order > 16)
+    {
+        std::stringstream ss;
+        ss << "wrong character: " << std::to_string(__order + 63);
+        const char* converted = ss.str().c_str();
+        throw G6Error(converted);
+    }
 
-        __order = c;
-        for (int i = 0; i < __order; i++)
-        {
-            std::vector<int> newList;
-            AdjencyList.push_back(newList);
-        }
+    for (int i = 0; i < __order; i++)
+    {
+        std::vector<int> newList;
+        AdjencyList.push_back(newList);
+    }
+
+    for (int charIndex = 1; charIndex < __order; charIndex++) {
+        int c = text[charIndex] - 63;
 
         for (int v = 0; v < __order; v++)
         {
             for (int u = 0; u < v; u++)
             {
                 if (k == 0)
-                    c = text.at(charIndex) - 63;
+                    c = text[charIndex] - 63;
                 if (c < 0 || c > 63)
                 {
                     std::stringstream ss;
@@ -149,7 +151,10 @@ const char* ListaSasiedztwaCpp::__str__()
 {
     int k = 0;
     int c = 0;
-    std::string text = std::to_string(__order + 63);
+    char* text = new char[1];
+    char* char_type = new char[std::to_string(__order + 63).length()];
+    strcpy(char_type, std::to_string(__order + 63).c_str());
+    
     for (int v = 0; v < __order; v++)
     {
         for (int u = 0; u < v; u++)
@@ -160,7 +165,7 @@ const char* ListaSasiedztwaCpp::__str__()
             }
             if (k == 0)
             {
-                text += std::to_string(c + 63);
+                text = strcat(text, std::to_string(c + 63).c_str());
                 k = 6;
                 c = 0;
             }
@@ -168,8 +173,8 @@ const char* ListaSasiedztwaCpp::__str__()
         }
     }
     if (k != 5)
-        text += std::to_string(c + 63);
-    return text.c_str;
+        text = strcat(text, std::to_string(c + 63).c_str());
+    return text;
 }
 
 
