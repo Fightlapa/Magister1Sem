@@ -100,14 +100,18 @@ void ListaSasiedztwaCpp::deleteEdge(int u, int v)
 // Przekształca reprezentację tekstową grafu w graf.
 void ListaSasiedztwaCpp::fromString(const char* text)
 {
+    if (strlen(text) == 0)
+    {
+        throw std::invalid_argument("too short text");
+    }
     int k = 0;
     __order = text[0] - 63;
     if (__order < 1 || __order > 16)
     {
         std::stringstream ss;
-        ss << "wrong character: " << std::to_string(__order + 63);
+        ss << "wrong order: " << std::to_string(__order + 63);
         const char* converted = ss.str().c_str();
-        throw G6Error(converted);
+        throw std::invalid_argument(converted);
     }
 
     for (int i = 0; i < __order; i++)
@@ -123,25 +127,43 @@ void ListaSasiedztwaCpp::fromString(const char* text)
         {
             for (int u = 0; u < v; u++)
             {
-                if (k == 0)
-                    c = text[charIndex] - 63;
-                if (c < 0 || c > 63)
+                try
                 {
-                    std::stringstream ss;
-                    ss << "wrong character: " << std::to_string(c + 63);
-                    const char* converted = ss.str().c_str();
-                    throw G6Error(converted);
+                    if (k == 0)
+                        c = text[charIndex] - 63;
+                    if (c < 0 || c > 63)
+                    {
+                        std::stringstream ss;
+                        ss << "wrong character: " << std::to_string(c + 63);
+                        const char* converted = ss.str().c_str();
+                        throw std::invalid_argument(converted);
+                    }
+                    k = 6;
+                    k -= 1;
+                    if ((c & (1 << k)) != 0)
+                    {
+                        addEdge(u,v);
+                    }
                 }
-                k = 6;
-                k -= 1;
-                if ((c & (1 << k)) != 0)
+                catch (...)
                 {
-                    addEdge(u, v);
+                    throw std::invalid_argument("too short text");
                 }
-
             }
         }
+        try
+        {
+            c = text[charIndex];
+            throw std::invalid_argument("too long text");
+        }
+        catch (...)
+        {
+
+        }
     }
+
+    // Return nothing
+    return;
 
 }
 

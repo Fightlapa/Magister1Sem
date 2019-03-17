@@ -16,7 +16,7 @@
 #include <algorithm>
 
 //#include "ListaSasiedztwaCpp.h"
-#define ERROR return;
+#define ERROR return NULL;
 
 PyObject *G6Error;
 PyObject *NoVerticesError;
@@ -36,7 +36,7 @@ PyObject* order(ListaSasiedztwa* self)
 }
 
 static
-void addVertex(ListaSasiedztwa* self, PyObject* args)
+PyObject* addVertex(ListaSasiedztwa* self, PyObject* args)
 {
     int u, v;
     // Process arguments
@@ -46,15 +46,16 @@ void addVertex(ListaSasiedztwa* self, PyObject* args)
 
     if (self->__order == 16)
     {
-        PyErr_SetString(TooManyVerticesError, "System command failed");
+        PyErr_SetString(TooManyVerticesError, "too many vertices");
         ERROR
     }
     std::vector<int> vertexList;
     self->AdjencyList.push_back(vertexList);
+    return NULL;
 }
 
 static
-void deleteVertex(ListaSasiedztwa* self, PyObject* args)
+PyObject* deleteVertex(ListaSasiedztwa* self, PyObject* args)
 {
     int u, v;
     // Process arguments
@@ -64,7 +65,7 @@ void deleteVertex(ListaSasiedztwa* self, PyObject* args)
 
     if (self->__order == 1)
     {
-        PyErr_SetString(NoVerticesError, "System command failed");
+        PyErr_SetString(NoVerticesError, "graph must have vertices");
         ERROR
     }
     for (std::vector<int> vertexAdjencyList : self->AdjencyList)
@@ -75,6 +76,7 @@ void deleteVertex(ListaSasiedztwa* self, PyObject* args)
     it = self->AdjencyList.begin();
     advance(it, u);
     self->AdjencyList.erase(it);
+    return NULL;
 }
 
 static
@@ -92,7 +94,7 @@ PyObject* isEdge(ListaSasiedztwa* self, PyObject* args)
 }
 
 static
-void addEdge(ListaSasiedztwa* self, PyObject* args)
+PyObject* addEdge(ListaSasiedztwa* self, PyObject* args)
 {
     int u, v;
     // Process arguments
@@ -102,10 +104,10 @@ void addEdge(ListaSasiedztwa* self, PyObject* args)
 
     self->AdjencyList.at(u).push_back(v);
     self->AdjencyList.at(v).push_back(u);
-
+    return NULL;
 }
 static
-void deleteEdge(ListaSasiedztwa* self, PyObject* args)
+PyObject* deleteEdge(ListaSasiedztwa* self, PyObject* args)
 {
     int u, v;
     // Process arguments
@@ -115,34 +117,36 @@ void deleteEdge(ListaSasiedztwa* self, PyObject* args)
 
     self->AdjencyList.at(u).erase(remove(self->AdjencyList.at(u).begin(), self->AdjencyList.at(u).end(), v), self->AdjencyList.at(u).end());
     self->AdjencyList.at(v).erase(remove(self->AdjencyList.at(v).begin(), self->AdjencyList.at(v).end(), u), self->AdjencyList.at(v).end());
+
+    return NULL;
 }
 
 static
-void fromString(ListaSasiedztwa* self, PyObject* args)
+PyObject* fromString(ListaSasiedztwa* self, PyObject* args)
 {
     // Arguments passed from Python
     const char* text;    // ListaSasiedztwa color
 
                          // Process arguments passes from Python
-    try
-    {
-        PyArg_ParseTuple(args, "s",
-            &text);
-    }
-    catch (...)
-    {
-        std::cout << "ParsingTuple failed in fromString";
-    }
 
+    PyArg_ParseTuple(args, "s",
+        &text);
+
+    if (strlen(text) == 0)
+    {
+        PyErr_SetString(G6Error, "too short text");
+        ERROR
+    }
 
     int k = 0;
     self->__order = text[0] - 63;
     if (self->__order < 1 || self->__order > 16)
     {
         std::stringstream ss;
-        ss << "wrong character: " << std::to_string(self->__order + 63);
+        ss << "wrong order: " << std::to_string(self->__order + 63);
         const char* converted = ss.str().c_str();
-        //throw G6Error(converted);
+        PyErr_SetString(G6Error, converted);
+        ERROR
     }
 
     for (int i = 0; i < self->__order; i++)
@@ -158,28 +162,46 @@ void fromString(ListaSasiedztwa* self, PyObject* args)
         {
             for (int u = 0; u < v; u++)
             {
-                if (k == 0)
-                    c = text[charIndex] - 63;
-                if (c < 0 || c > 63)
+                try
                 {
-                    std::stringstream ss;
-                    ss << "wrong character: " << std::to_string(c + 63);
-                    const char* converted = ss.str().c_str();
-                    //throw G6Error(converted);
+                    if (k == 0)
+                        c = text[charIndex] - 63;
+                    if (c < 0 || c > 63)
+                    {
+                        std::stringstream ss;
+                        ss << "wrong character: " << std::to_string(c + 63);
+                        const char* converted = ss.str().c_str();
+                        PyErr_SetString(G6Error, converted);
+                        ERROR
+                    }
+                    k = 6;
+                    k -= 1;
+                    if ((c & (1 << k)) != 0)
+                    {
+                        addEdge(self, Py_BuildValue("ii", u, v));
+                    }
                 }
-                k = 6;
-                k -= 1;
-                if ((c & (1 << k)) != 0)
+                catch(...)
                 {
-                    addEdge(self, Py_BuildValue("ii", u,v));
+                    PyErr_SetString(G6Error, "too short text");
+                    ERROR
                 }
-
             }
+        }
+        try
+        {
+            c = text[charIndex];
+            PyErr_SetString(G6Error, "too long text");
+            ERROR
+        }
+        catch(...)
+        {
+            
         }
     }
 
     // Return nothing
-    return;
+    return NULL;
 }
 static
 PyObject* __str__(ListaSasiedztwa* self, PyObject* args)
@@ -443,19 +465,19 @@ PyMODINIT_FUNC PyInit_simple_graphs(void)
     G6Error = PyErr_NewException("basic_graphs.G6Error", NULL, NULL);
     Py_INCREF(G6Error);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "G6Error", G6Error);
-    //PyModule_AddObject(m, "error", G6Error);
+    PyModule_AddObject(m, "G6Error", G6Error);
 
 
     NoVerticesError = PyErr_NewException("basic_graphs.NoVerticesError", NULL, NULL);
     Py_INCREF(NoVerticesError);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "NoVerticesError", NoVerticesError);
-    //PyModule_AddObject(m, "error", NoVerticesError);
+    PyModule_AddObject(m, "NoVerticesError", NoVerticesError);
 
 
     TooManyVerticesError = PyErr_NewException("basic_graphs.TooManyVerticesError", NULL, NULL);
     Py_INCREF(TooManyVerticesError);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "TooManyVerticesError", TooManyVerticesError);
-    //PyModule_AddObject(m, "error", TooManyVerticesError);
+    PyModule_AddObject(m, "TooManyVerticesError", TooManyVerticesError);
 
 
     Py_INCREF(&ListaSasiedztwaType);

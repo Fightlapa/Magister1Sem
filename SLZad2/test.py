@@ -19,19 +19,15 @@ from zipfile import ZipFile
 #   - usuwanie i dodawanie wybranych wierzchołków;
 #   - usuwanie, dodawanie i sprawdzanie, czy wybrane krawędzie istnieją.
 # Tester kończy pracę w momencie stwierdzenia pierwszego błędu lub poprawnego zaliczenia całości.
+
 from simple_graphs import ListaSasiedztwa as TestedGraph
-for x in dir( TestedGraph ):
-    print(x)
-print("Split")
-for x in dir( Graph ):
-    print(x)
-cos = TestedGraph("A?")
-print("DotarlemTuChociaz?")
-print("test orderu" + str(cos.order()))
+argv = ["", "ListaSasiedztwa", "simple_graphs"]
+
+#from graphs  import Graph as TestedGraph
+#argv = ["", "Graph", "graphs"]
 
 try:
-    #exec( "from {0} import {1} as TestedGraph".format( argv[2], argv[1] ) )
-    exec( "from {0} import {1} as TestedGraph".format( "simple_graphs", "ListaSasiedztwa" ) )
+    exec( "from {0} import {1} as TestedGraph".format( argv[2], argv[1] ) )
     print( "Przygotowuję dane testowe. Proszę czekać." )
     with ZipFile( "graphs.zip" ) as data:
         graphs = "\n".join( [data.open( name ).read().decode() for name in data.namelist()] ).split()
@@ -50,31 +46,32 @@ try:
     print( "Test #2 -- wyjątki" )
     try:
         try: TestedGraph( "" )
-        except TestedGraph.G6Error: pass
+        except TestedGraph.G6Error: print("1done")
         else:
             print( "!!! Błędna obsługa konwersji zbyt krótkiego napisu." )
             exit()
         try: TestedGraph( "@ " )
-        except TestedGraph.G6Error: pass
+        except TestedGraph.G6Error: print("2done")
         else:
             print( "!!! Błędna obsługa konwersji zbyt długiego napisu." )
             exit()
         try: TestedGraph( "A*" )
-        except TestedGraph.G6Error: pass
+        except TestedGraph.G6Error: print("3done")
         else:
             print( "!!! Błędna obsługa konwersji błędnego napisu." )
             exit()
         try: TestedGraph().deleteVertex( 0 )
-        except TestedGraph.NoVerticesError: pass
+        except TestedGraph.NoVerticesError: print("4done")
         else:
             print( "!!! Błędna obsługa usuwania wierzchołków." )
             exit()
         try: TestedGraph( "O????????????????????" ).addVertex()
-        except TestedGraph.TooManyVerticesError: pass
+        except TestedGraph.TooManyVerticesError: print("5done")
         else:
             print( "!!! Błędna obsługa dodawania wierzchołków." )
             exit()
     except Exception as v:
+        print(type(v).__name__)
         print( "!!! Pojawił się niespodziewany wyjątek {0}.".format( str( v ) ) )
         exit()
     print( "Test #2 zaliczony -- wyjątki działają prawidłowo." )
