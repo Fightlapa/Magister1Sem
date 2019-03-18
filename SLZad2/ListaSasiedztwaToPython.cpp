@@ -1,13 +1,4 @@
-﻿/*
-*  graph2py.cpp:
-*
-*  BOTTOM INTERFACE TO `CAR`.
-*
-*  (c) 2017, Jacek Pierzchlewski, jacek@pierzchlewski.com
-*
-*  License:  BSD 2-CLAUSE.
-*/
-#include <Python.h>
+﻿#include <Python.h>
 #include "structmember.h"
 #include <iostream>
 #include <vector>
@@ -16,7 +7,6 @@
 #include <algorithm>
 
 //#include "ListaSasiedztwaCpp.h"
-#define ERROR return NULL;
 
 PyObject *G6Error;
 PyObject *NoVerticesError;
@@ -25,7 +15,7 @@ PyObject *TooManyVerticesError;
 typedef struct {
     PyObject_HEAD
     size_t __order;  /* the maximum number of elements in q_elements */
-    std::vector<std::vector<int>> AdjencyList;  /* the elements in the queue as a Python list */
+    std::vector<std::vector<int>> AdjacencyList;  /* the elements in the queue as a Python list */
 } ListaSasiedztwa;
 
 /* function implementations */
@@ -36,47 +26,40 @@ PyObject* order(ListaSasiedztwa* self)
 }
 
 static
-PyObject* addVertex(ListaSasiedztwa* self, PyObject* args)
+PyObject* addVertex(ListaSasiedztwa* self)
 {
-    int u, v;
-    // Process arguments
-    PyArg_ParseTuple(args, "ii",
-        &u,
-        &v);
-
     if (self->__order == 16)
     {
         PyErr_SetString(TooManyVerticesError, "too many vertices");
-        ERROR
+        return 0;
     }
     std::vector<int> vertexList;
-    self->AdjencyList.push_back(vertexList);
-    return NULL;
+    self->AdjacencyList.push_back(vertexList);
+    Py_RETURN_NONE;
 }
 
 static
 PyObject* deleteVertex(ListaSasiedztwa* self, PyObject* args)
 {
-    int u, v;
+    int u;
     // Process arguments
-    PyArg_ParseTuple(args, "ii",
-        &u,
-        &v);
+    PyArg_ParseTuple(args, "i",
+        &u);
 
     if (self->__order == 1)
     {
         PyErr_SetString(NoVerticesError, "graph must have vertices");
-        ERROR
+        return 0;
     }
-    for (std::vector<int> vertexAdjencyList : self->AdjencyList)
+    for (std::vector<int> vertexAdjencyList : self->AdjacencyList)
     {
         vertexAdjencyList.erase(remove(vertexAdjencyList.begin(), vertexAdjencyList.end(), u), vertexAdjencyList.end());
     }
     std::vector<std::vector<int>>::iterator it;
-    it = self->AdjencyList.begin();
+    it = self->AdjacencyList.begin();
     advance(it, u);
-    self->AdjencyList.erase(it);
-    return NULL;
+    self->AdjacencyList.erase(it);
+    Py_RETURN_NONE;
 }
 
 static
@@ -88,9 +71,9 @@ PyObject* isEdge(ListaSasiedztwa* self, PyObject* args)
         &u,
         &v);
 
-    if (std::find(self->AdjencyList.at(u).begin(), self->AdjencyList.at(u).end(), v) != self->AdjencyList.at(u).end())
-        return Py_True;
-    return Py_False;
+    if (std::find(self->AdjacencyList.at(u).begin(), self->AdjacencyList.at(u).end(), v) != self->AdjacencyList.at(u).end())
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
 }
 
 static
@@ -102,9 +85,9 @@ PyObject* addEdge(ListaSasiedztwa* self, PyObject* args)
         &u,
         &v);
 
-    self->AdjencyList.at(u).push_back(v);
-    self->AdjencyList.at(v).push_back(u);
-    return NULL;
+    self->AdjacencyList.at(u).push_back(v);
+    self->AdjacencyList.at(v).push_back(u);
+    Py_RETURN_NONE;
 }
 static
 PyObject* deleteEdge(ListaSasiedztwa* self, PyObject* args)
@@ -115,10 +98,10 @@ PyObject* deleteEdge(ListaSasiedztwa* self, PyObject* args)
         &u,
         &v);
 
-    self->AdjencyList.at(u).erase(remove(self->AdjencyList.at(u).begin(), self->AdjencyList.at(u).end(), v), self->AdjencyList.at(u).end());
-    self->AdjencyList.at(v).erase(remove(self->AdjencyList.at(v).begin(), self->AdjencyList.at(v).end(), u), self->AdjencyList.at(v).end());
+    self->AdjacencyList.at(u).erase(remove(self->AdjacencyList.at(u).begin(), self->AdjacencyList.at(u).end(), v), self->AdjacencyList.at(u).end());
+    self->AdjacencyList.at(v).erase(remove(self->AdjacencyList.at(v).begin(), self->AdjacencyList.at(v).end(), u), self->AdjacencyList.at(v).end());
 
-    return NULL;
+    Py_RETURN_NONE;
 }
 
 static
@@ -135,7 +118,7 @@ PyObject* fromString(ListaSasiedztwa* self, PyObject* args)
     if (strlen(text) == 0)
     {
         PyErr_SetString(G6Error, "too short text");
-        ERROR
+        return 0;
     }
 
     int k = 0;
@@ -146,83 +129,83 @@ PyObject* fromString(ListaSasiedztwa* self, PyObject* args)
         ss << "wrong order: " << std::to_string(self->__order + 63);
         const char* converted = ss.str().c_str();
         PyErr_SetString(G6Error, converted);
-        ERROR
+        return 0;
     }
 
     for (int i = 0; i < self->__order; i++)
     {
         std::vector<int> newList;
-        self->AdjencyList.push_back(newList);
+        self->AdjacencyList.push_back(newList);
     }
 
-    for (int charIndex = 1; charIndex < self->__order; charIndex++) {
-        int c = text[charIndex] - 63;
+    int charIndex = 1;
+    int c;
 
-        for (int v = 0; v < self->__order; v++)
-        {
-            for (int u = 0; u < v; u++)
-            {
-                try
-                {
-                    if (k == 0)
-                        c = text[charIndex] - 63;
-                    if (c < 0 || c > 63)
-                    {
-                        std::stringstream ss;
-                        ss << "wrong character: " << std::to_string(c + 63);
-                        const char* converted = ss.str().c_str();
-                        PyErr_SetString(G6Error, converted);
-                        ERROR
-                    }
-                    k = 6;
-                    k -= 1;
-                    if ((c & (1 << k)) != 0)
-                    {
-                        addEdge(self, Py_BuildValue("ii", u, v));
-                    }
-                }
-                catch(...)
-                {
-                    PyErr_SetString(G6Error, "too short text");
-                    ERROR
-                }
-            }
-        }
-        try
-        {
-            c = text[charIndex];
-            PyErr_SetString(G6Error, "too long text");
-            ERROR
-        }
-        catch(...)
-        {
-            
-        }
-    }
-
-    // Return nothing
-    return NULL;
-}
-static
-PyObject* __str__(ListaSasiedztwa* self, PyObject* args)
-{
-    int k = 0;
-    int c = 0;
-    char* text = new char[1];
-    char* char_type = new char[std::to_string(self->__order + 63).length()];
-    strcpy(char_type, std::to_string(self->__order + 63).c_str());
-
-    for (int v = 0; v < self->__order; v++)
+    for (int v = 1; v < self->__order; v++)
     {
         for (int u = 0; u < v; u++)
         {
-            if (isEdge(self, Py_BuildValue("ii", u, v)))
+            if (k == 0)
+            {
+                if (charIndex == strlen(text))
+                {
+                    PyErr_SetString(G6Error, "too short text");
+                    return 0;
+                }
+                c = text[charIndex++] - 63;
+                if (c < 0 || c > 63)
+                {
+                    std::stringstream ss;
+                    ss << "wrong character: " << std::to_string(c + 63);
+                    const char* converted = ss.str().c_str();
+                    throw std::invalid_argument(converted);
+                }
+                k = 6;
+            }
+            k -= 1;
+            if ((c & (1 << k)) != 0)
+            {
+                self->AdjacencyList.at(u).push_back(v);
+                self->AdjacencyList.at(v).push_back(u);
+            }
+        }
+    }
+
+    if (charIndex != strlen(text))
+    {
+        PyErr_SetString(G6Error, "too long text");
+        return 0;
+    }
+    Py_RETURN_NONE;
+}
+static
+PyObject* __str__(ListaSasiedztwa* self)
+{
+    int k = 0;
+    int c = 0;
+    char* text = new char[1 + self->__order * self->__order];
+    text[0] = self->__order + 63;
+    int currentIndex = 0;
+
+    for (int v = 1; v < self->__order; v++)
+    {
+        for (int u = 0; u < v; u++)
+        {
+            if (std::find(self->AdjacencyList.at(u).begin(), self->AdjacencyList.at(u).end(), v) != self->AdjacencyList.at(u).end())
             {
                 c |= (1 << k);
             }
+            //PyObject* temp = Py_BuildValue("ii", u, v);
+            //if (isEdge(self, temp))
+            //{
+            //    c |= (1 << k);
+            //}
+
+            //Py_XDECREF(temp);
+
             if (k == 0)
             {
-                text = strcat(text, std::to_string(c + 63).c_str());
+                text[++currentIndex] = c + 63;
                 k = 6;
                 c = 0;
             }
@@ -230,7 +213,8 @@ PyObject* __str__(ListaSasiedztwa* self, PyObject* args)
         }
     }
     if (k != 5)
-        text = strcat(text, std::to_string(c + 63).c_str());
+        text[++currentIndex] = c + 63;
+    text[currentIndex] = 0;
     return PyUnicode_FromString(text);
 }
 
@@ -254,21 +238,26 @@ PyObject* __eq__(ListaSasiedztwa* self, PyObject* args)
     {
         for (int u = 0; u < v; u++)
         {
-            if (isEdge(self, Py_BuildValue("ii", u, v)) != isEdge(otherGraph, Py_BuildValue("ii", u, v)))
+            self->AdjacencyList.at(u).push_back(v);
+            self->AdjacencyList.at(v).push_back(u);
+
+            if ((std::find(self->AdjacencyList.at(u).begin(), self->AdjacencyList.at(u).end(), v) != self->AdjacencyList.at(u).end())
+                != (std::find(otherGraph->AdjacencyList.at(u).begin(), otherGraph->AdjacencyList.at(u).end(), v) != otherGraph->AdjacencyList.at(u).end()))
             {
-                return Py_False;
+                Py_RETURN_FALSE;
             }
+
         }
     }
-    return Py_True;
+    Py_RETURN_TRUE;
 }
 static
 PyObject* __ne__(ListaSasiedztwa* self, PyObject* args)
 {
 
     if (__eq__(self, args))
-        return Py_False;
-    Py_True;
+        Py_RETURN_FALSE;
+    Py_RETURN_TRUE;
 }
 
 
@@ -276,7 +265,7 @@ PyObject* __ne__(ListaSasiedztwa* self, PyObject* args)
 //ListaSasiedztwa_tp_traverse(ListaSasiedztwa *self, visitproc visit, void *arg)
 //{
 //    Py_VISIT(self->__order);
-//    Py_VISIT(self->AdjencyList);
+//    Py_VISIT(self->AdjacencyList);
 //    return 0;
 //}
 
@@ -284,7 +273,7 @@ PyObject* __ne__(ListaSasiedztwa* self, PyObject* args)
 //ListaSasiedztwa_tp_clear(ListaSasiedztwa *self)
 //{
 //    Py_CLEAR(self->__order);
-//    Py_CLEAR(self->AdjencyList);
+//    Py_CLEAR(self->AdjacencyList);
 //    return 0;
 //}
 
@@ -306,7 +295,7 @@ PyMethodDef cListaSasiedztwaFunctions[] =
 "Fuel up graph" },
 
 { "addVertex",                       // C++/Py wrapper for `drive`
-(PyCFunction)addVertex, METH_VARARGS,
+(PyCFunction)addVertex, METH_NOARGS,
 "Drive the graph" },
 
 { "deleteVertex",               // C++/Py wrapper for `print_mileage`
@@ -329,9 +318,9 @@ PyMethodDef cListaSasiedztwaFunctions[] =
 (PyCFunction)fromString, METH_VARARGS,
 "Print mileage of the graph" },
 
-{ "__str__",               // C++/Py wrapper for `print_mileage`
-(PyCFunction)__str__, METH_VARARGS,
-"Print mileage of the graph" },
+//{ "__str__",               // C++/Py wrapper for `print_mileage`
+//(PyCFunction)__str__, METH_VARARGS,
+//"Print mileage of the graph" },
 
 { "__eq__",               // C++/Py wrapper for `print_mileage`
 (PyCFunction)__eq__, METH_VARARGS,
@@ -372,7 +361,7 @@ struct PyModuleDef cSimpleGraphsModule =
 
 //static PyMemberDef Foo_members[] = {
 //    { "__order", T_INT, offsetof(ListaSasiedztwa, __order), 0, "order attribute" },
-//{ "AdjencyList", T_OBJECT_EX, offsetof(ListaSasiedztwa, AdjencyList), 0, "list attribute" },
+//{ "AdjacencyList", T_OBJECT_EX, offsetof(ListaSasiedztwa, AdjacencyList), 0, "list attribute" },
 //{ NULL }
 //};
 
@@ -381,14 +370,6 @@ static int ListaSasiedztwa_tp_init(ListaSasiedztwa *self, PyObject *args)
 {
     fromString(self, args);
     return 0;
-    //if (PyArg_ParseTuple(args, "s", text)) {
-    //    fromString(self, Py_BuildValue("s", text));
-    //    return 0;
-    //}
-    //else
-    //{
-    //    std::cout << "ParsingTuple failed in fromString";
-    //}
 }
 
 static PyObject *ListaSasiedztwa_tp_new(
@@ -439,46 +420,32 @@ static PyTypeObject ListaSasiedztwaType = {
     (newfunc)ListaSasiedztwa_tp_new,                        /* tp_new */
 };
 
-
-/* Add a type to a module */
-int
-PyModule_AddType(PyObject *module, const char *name, PyTypeObject *type)
-{
-    if (PyType_Ready(type)) {
-        return -1;
-    }
-    Py_INCREF(type);
-    if (PyModule_AddObject(module, name, (PyObject *)type)) {
-        Py_DECREF(type);
-        return -1;
-    }
-    return 0;
-}
-static PyObject* ListaSasiedztwaAtrybutModulu;
-
 PyMODINIT_FUNC PyInit_simple_graphs(void)
 {
-    if (PyType_Ready(&ListaSasiedztwaType) < 0) return NULL;
-    PyObject* m = PyModule_Create(&cSimpleGraphsModule);
-    if (m == NULL) return NULL;
+    ListaSasiedztwaType.tp_dict = PyDict_New();
+    if (!ListaSasiedztwaType.tp_dict) return NULL;
 
-    G6Error = PyErr_NewException("basic_graphs.G6Error", NULL, NULL);
+    G6Error = PyErr_NewException("simple_graphs.ListaSasiedztwa.G6Error", NULL, NULL);
     Py_INCREF(G6Error);
+    //PyModule_AddObject(m, "ListaSasiedztwa.G6Error", G6Error);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "G6Error", G6Error);
-    PyModule_AddObject(m, "G6Error", G6Error);
 
 
-    NoVerticesError = PyErr_NewException("basic_graphs.NoVerticesError", NULL, NULL);
+    NoVerticesError = PyErr_NewException("simple_graphs.ListaSasiedztwa.NoVerticesError", NULL, NULL);
     Py_INCREF(NoVerticesError);
+    //PyModule_AddObject(m, "ListaSasiedztwa.NoVerticesError", NoVerticesError);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "NoVerticesError", NoVerticesError);
-    PyModule_AddObject(m, "NoVerticesError", NoVerticesError);
 
 
-    TooManyVerticesError = PyErr_NewException("basic_graphs.TooManyVerticesError", NULL, NULL);
+    TooManyVerticesError = PyErr_NewException("simple_graphs.ListaSasiedztwa.TooManyVerticesError", NULL, NULL);
     Py_INCREF(TooManyVerticesError);
+    //PyModule_AddObject(m, "ListaSasiedztwa.TooManyVerticesError", TooManyVerticesError);
     PyDict_SetItemString(ListaSasiedztwaType.tp_dict, "TooManyVerticesError", TooManyVerticesError);
-    PyModule_AddObject(m, "TooManyVerticesError", TooManyVerticesError);
 
+
+    if (PyType_Ready(&ListaSasiedztwaType) < 0) Py_RETURN_NONE;
+    PyObject* m = PyModule_Create(&cSimpleGraphsModule);
+    if (m == NULL) Py_RETURN_NONE;
 
     Py_INCREF(&ListaSasiedztwaType);
     PyModule_AddObject(m, "ListaSasiedztwa",

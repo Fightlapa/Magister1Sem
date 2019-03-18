@@ -119,51 +119,41 @@ void ListaSasiedztwaCpp::fromString(const char* text)
         std::vector<int> newList;
         AdjencyList.push_back(newList);
     }
+    int charIndex = 1;
+    int c = text[charIndex++] - 63;
 
-    for (int charIndex = 1; charIndex < __order; charIndex++) {
-        int c = text[charIndex] - 63;
-
-        for (int v = 0; v < __order; v++)
+    for (int v = 1; v < __order; v++)
+    {
+        for (int u = 0; u < v; u++)
         {
-            for (int u = 0; u < v; u++)
+            if (k == 0)
             {
-                try
-                {
-                    if (k == 0)
-                        c = text[charIndex] - 63;
-                    if (c < 0 || c > 63)
-                    {
-                        std::stringstream ss;
-                        ss << "wrong character: " << std::to_string(c + 63);
-                        const char* converted = ss.str().c_str();
-                        throw std::invalid_argument(converted);
-                    }
-                    k = 6;
-                    k -= 1;
-                    if ((c & (1 << k)) != 0)
-                    {
-                        addEdge(u,v);
-                    }
-                }
-                catch (...)
+                if (charIndex == strlen(text))
                 {
                     throw std::invalid_argument("too short text");
                 }
+                c = text[charIndex++] - 63;
+                if (c < 0 || c > 63)
+                {
+                    const char symbol[1] = { c + 63 };
+                    std::stringstream ss;
+                    ss << "wrong character: " << symbol[0];
+                    const char* converted = ss.str().c_str();
+                    throw std::invalid_argument(converted);
+                }
+                k = 6;
             }
-        }
-        try
-        {
-            c = text[charIndex];
-            throw std::invalid_argument("too long text");
-        }
-        catch (...)
-        {
 
+            k -= 1;
+            if ((c & (1 << k)) != 0)
+            {
+                addEdge(u,v);
+            }
         }
     }
 
-    // Return nothing
-    return;
+    if (charIndex != strlen(text))
+        throw std::invalid_argument("too long text");
 
 }
 
@@ -173,11 +163,11 @@ const char* ListaSasiedztwaCpp::__str__()
 {
     int k = 0;
     int c = 0;
-    char* text = new char[1];
-    char* char_type = new char[std::to_string(__order + 63).length()];
-    strcpy(char_type, std::to_string(__order + 63).c_str());
+    char* text = new char[1000];
+    text[0] = __order + 63;
+    int currentIndex = 0;
     
-    for (int v = 0; v < __order; v++)
+    for (int v = 1; v < __order; v++)
     {
         for (int u = 0; u < v; u++)
         {
@@ -187,7 +177,7 @@ const char* ListaSasiedztwaCpp::__str__()
             }
             if (k == 0)
             {
-                text = strcat(text, std::to_string(c + 63).c_str());
+                text[++currentIndex] = c + 63;
                 k = 6;
                 c = 0;
             }
@@ -195,8 +185,12 @@ const char* ListaSasiedztwaCpp::__str__()
         }
     }
     if (k != 5)
-        text = strcat(text, std::to_string(c + 63).c_str());
-    return text;
+    {
+        text[++currentIndex] = c + 63;
+    }
+
+    text[currentIndex] = 0;
+    return (const char*)text;
 }
 
 

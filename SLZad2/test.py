@@ -23,6 +23,23 @@ from zipfile import ZipFile
 from simple_graphs import ListaSasiedztwa as TestedGraph
 argv = ["", "ListaSasiedztwa", "simple_graphs"]
 
+gra = TestedGraph( "I????????" )
+print(str(gra))
+#for v in range( 1,gra.order() ):
+#    for u in range( v ):
+#        print(gra.isEdge(u,v))
+text, k, c = chr( gra.order() + 63 ), 5, 0
+for v in range( 1, gra.order() ):
+    for u in range( v ):
+        if gra.isEdge(u,v):
+            c |= (1 << k)
+        if k == 0:
+            text += chr( c + 63 )
+            k, c = 6, 0
+        k -= 1
+if k != 5:
+    text += chr( c + 63 )
+print( text )
 #from graphs  import Graph as TestedGraph
 #argv = ["", "Graph", "graphs"]
 
@@ -90,6 +107,7 @@ try:
             g, h = TestedGraph( g6 ), Graph( g6 )
             if str( g ) != g6 or h != g:
                 print( "!!! Błędna konwersja z/do formatu g6 dla grafu {0}".format( g6 ) )
+                print( str ( g ))
                 exit()
         except Exception as e:
             print( "!!! Test konwersji z/do formatu g6 zakończył się dla grafu {0} wyjątkiem '{1}'".format( g6, str( e ) ) )
