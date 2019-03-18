@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include "ListaSasiedztwaCpp.h"
+#include <iostream>
 
 
 // Wyjątek pojawiający się przy próbie konwersji z błędnej reprezentacji tekstowej.
@@ -32,7 +33,7 @@ public:
 };
 
 // Tworzy graf o podanej reprezentacji tekstowej(domyślnie: 1 - wierzchołkowy graf pusty).
-ListaSasiedztwaCpp::ListaSasiedztwaCpp(const char* text = "@")
+ListaSasiedztwaCpp::ListaSasiedztwaCpp(const char* text)
 {
     fromString(text);
 }
@@ -52,7 +53,7 @@ void ListaSasiedztwaCpp::addVertex()
     }
     std::vector<int> vertexList;
     AdjencyList.push_back(vertexList);
-
+    __order++;
 }
 
 
@@ -120,7 +121,7 @@ void ListaSasiedztwaCpp::fromString(const char* text)
         AdjencyList.push_back(newList);
     }
     int charIndex = 1;
-    int c = text[charIndex++] - 63;
+    int c = text[charIndex] - 63;
 
     for (int v = 1; v < __order; v++)
     {
@@ -135,11 +136,7 @@ void ListaSasiedztwaCpp::fromString(const char* text)
                 c = text[charIndex++] - 63;
                 if (c < 0 || c > 63)
                 {
-                    const char symbol[1] = { c + 63 };
-                    std::stringstream ss;
-                    ss << "wrong character: " << symbol[0];
-                    const char* converted = ss.str().c_str();
-                    throw std::invalid_argument(converted);
+                    throw std::invalid_argument("wrong character");
                 }
                 k = 6;
             }
@@ -148,10 +145,10 @@ void ListaSasiedztwaCpp::fromString(const char* text)
             if ((c & (1 << k)) != 0)
             {
                 addEdge(u,v);
+                std::cout << "Adding edge for " << u << "" << v  << std::endl;
             }
         }
     }
-
     if (charIndex != strlen(text))
         throw std::invalid_argument("too long text");
 
@@ -161,9 +158,9 @@ void ListaSasiedztwaCpp::fromString(const char* text)
 // Przekształca graf w reprezentację tekstową.
 const char* ListaSasiedztwaCpp::__str__()
 {
-    int k = 0;
+    int k = 5;
     int c = 0;
-    char* text = new char[1000];
+    char* text = new char[((__order * __order) - __order) / 2];
     text[0] = __order + 63;
     int currentIndex = 0;
     
@@ -173,11 +170,13 @@ const char* ListaSasiedztwaCpp::__str__()
         {
             if (isEdge(u, v))
             {
+                std::cout << "Edge exists for " << u << "" << v << std::endl;
                 c |= (1 << k);
             }
             if (k == 0)
             {
-                text[++currentIndex] = c + 63;
+                currentIndex++;
+                text[currentIndex] = c + 63;
                 k = 6;
                 c = 0;
             }
@@ -186,9 +185,10 @@ const char* ListaSasiedztwaCpp::__str__()
     }
     if (k != 5)
     {
-        text[++currentIndex] = c + 63;
+        currentIndex++;
+        text[currentIndex] = c + 63;
     }
-
+    currentIndex++;
     text[currentIndex] = 0;
     return (const char*)text;
 }

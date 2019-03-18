@@ -85,6 +85,7 @@ class Graph:
             for u in range( v ):
                 if self.__matrix[u][v]:
                     c |= (1 << k)
+                    print(f"Edge exists for {u},{v}")
                 if k == 0:
                     text += chr( c + 63 )
                     k, c = 6, 0

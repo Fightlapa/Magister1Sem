@@ -16,7 +16,7 @@ public:
     std::vector<std::vector<int>> AdjencyList;
 
     // Tworzy graf o podanej reprezentacji tekstowej(domyślnie: 1 - wierzchołkowy graf pusty).
-    ListaSasiedztwaCpp(const char*);
+    ListaSasiedztwaCpp(const char* text = "@");
 
     // Zwraca liczbę wierzchołków grafu.
     int order();
