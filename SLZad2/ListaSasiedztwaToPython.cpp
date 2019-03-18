@@ -14,7 +14,6 @@ PyObject *TooManyVerticesError;
 
 typedef struct {
     PyObject_HEAD
-    size_t __order;  /* the maximum number of elements in q_elements */
     std::vector<std::vector<int>> __AdjacencyList;  /* the elements in the queue as a Python list */
 } AdjacencyList;
 
@@ -22,20 +21,19 @@ typedef struct {
 static
 PyObject* order(AdjacencyList* self)
 {
-    return PyLong_FromSize_t(self->__order);
+    return PyLong_FromSize_t(self->__AdjacencyList.size());
 }
 
 static
 PyObject* addVertex(AdjacencyList* self)
 {
-    if (self->__order == 16)
+    if (self->__AdjacencyList.size() == 16)
     {
         PyErr_SetString(TooManyVerticesError, "too many vertices");
         return NULL;
     }
     std::vector<int> vertexList;
     self->__AdjacencyList.push_back(vertexList);
-    self->__order++;
     Py_RETURN_NONE;
 }
 
@@ -46,7 +44,7 @@ PyObject* deleteVertex(AdjacencyList* self, PyObject* args)
     // Process arguments
     u = _PyLong_AsInt(args);
 
-    if (self->__order == 1)
+    if (self->__AdjacencyList.size() == 1)
     {
         PyErr_SetString(NoVerticesError, "graph must have vertices");
         return NULL;
@@ -59,7 +57,6 @@ PyObject* deleteVertex(AdjacencyList* self, PyObject* args)
     it = self->__AdjacencyList.begin();
     advance(it, u);
     self->__AdjacencyList.erase(it);
-    self->__order--;
     Py_RETURN_NONE;
 }
 
@@ -113,17 +110,17 @@ static PyObject* fromStringAdapter(AdjacencyList* self, const char* text)
     }
 
     int k = 0;
-    self->__order = text[0] - 63;
-    if (self->__order < 1 || self->__order > 16)
+    int size = text[0] - 63;
+    if (size < 1 || size > 16)
     {
         std::stringstream ss;
-        ss << "wrong order: " << std::to_string(self->__order + 63);
+        ss << "wrong order: " << std::to_string(size + 63);
         const char* converted = ss.str().c_str();
         PyErr_SetString(G6Error, converted);
         return NULL;
     }
 
-    for (int i = 0; i < self->__order; i++)
+    for (int i = 0; i < size; i++)
     {
         std::vector<int> newList;
         self->__AdjacencyList.push_back(newList);
@@ -132,7 +129,7 @@ static PyObject* fromStringAdapter(AdjacencyList* self, const char* text)
     int charIndex = 1;
     int c;
 
-    for (int v = 1; v < self->__order; v++)
+    for (int v = 1; v < self->__AdjacencyList.size(); v++)
     {
         for (int u = 0; u < v; u++)
         {
@@ -188,11 +185,11 @@ PyObject* __str__(AdjacencyList* self)
 {
     int k = 5;
     int c = 0;
-    char* text = new char[1 + self->__order * self->__order];
-    text[0] = self->__order + 63;
+    char* text = new char[1 + self->__AdjacencyList.size() * self->__AdjacencyList.size()];
+    text[0] = self->__AdjacencyList.size() + 63;
     int currentIndex = 0;
 
-    for (int v = 1; v < self->__order; v++)
+    for (int v = 1; v < self->__AdjacencyList.size(); v++)
     {
         for (int u = 0; u < v; u++)
         {
@@ -238,11 +235,15 @@ PyObject* __eq__(AdjacencyList* self, PyObject* args)
     AdjacencyList* otherGraph = (AdjacencyList*)PyCapsule_GetPointer(other, "AdjacencyListPtr");
 
     //PyLongObject* thisOrder = (PyLongObject*)(PyLong_FromSize_t(self->__order));
-
-    if (self->__order != otherGraph->__order)
+    PyObject* otherGraphSize = order(otherGraph);
+    int otherGraphSizeInt = _PyLong_AsInt(otherGraphSize);
+    if (self->__AdjacencyList.size() != otherGraphSizeInt)
+    {
+        Py_XDECREF(otherGraphSize);
         Py_RETURN_FALSE;
+    }
 
-    for (int v = 0; v < self->__order; v++)
+    for (int v = 0; v < self->__AdjacencyList.size(); v++)
     {
         for (int u = 0; u < v; u++)
         {
@@ -287,6 +288,12 @@ PyObject* __ne__(AdjacencyList* self, PyObject* args)
 
 static void delete_object(AdjacencyList* self)
 {
+    for (std::vector<int> vertexAdjencyList : self->__AdjacencyList)
+    {
+        vertexAdjencyList.clear();
+    }
+    self->__AdjacencyList.clear();
+
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
