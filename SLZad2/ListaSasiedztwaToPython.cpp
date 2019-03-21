@@ -1,12 +1,10 @@
 ﻿#include <Python.h>
-#include "structmember.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <algorithm>
 
-//#include "AdjacencyListCpp.h"
 
 PyObject *G6Error;
 PyObject *NoVerticesError;
@@ -55,6 +53,8 @@ PyObject* deleteVertex(AdjacencyList* self, PyObject* args)
     std::vector<std::vector<int>*>::iterator it;
     it = self->__AdjacencyList->begin();
     advance(it, u);
+    self->__AdjacencyList->at(u)->clear();
+    delete(self->__AdjacencyList->at(u));
     self->__AdjacencyList->erase(it);
     Py_RETURN_NONE;
 }
@@ -116,6 +116,7 @@ static PyObject* fromStringAdapter(AdjacencyList* self, const char* text)
         ss << "wrong order: " << std::to_string(size + 63);
         const char* converted = ss.str().c_str();
         PyErr_SetString(G6Error, converted);
+        delete converted;
         return NULL;
     }
 
@@ -256,6 +257,7 @@ PyObject* __eq__(AdjacencyList* self, PyObject* args)
 
         }
     }
+    Py_XDECREF(otherGraphSizeInt);
     Py_RETURN_TRUE;
 }
 static
@@ -286,7 +288,7 @@ PyObject* __ne__(AdjacencyList* self, PyObject* args)
 
 static void delete_object(AdjacencyList* self)
 {
-    for (int i = 0; i < self->__AdjacencyList->size(); i++)
+    for (int i = self->__AdjacencyList->size() - 1; i >= 0; i--)
     {
         self->__AdjacencyList->at(i)->clear();
         delete(self->__AdjacencyList->at(i));
