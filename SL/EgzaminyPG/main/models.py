@@ -20,22 +20,27 @@ class ExamTemplate(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('main-exam-detail', kwargs={'pk':self.pk})
+        return reverse('main-exam-template-detail', kwargs={'pk':self.pk})
 
 class Exam(models.Model):
     student = models.ForeignKey(PGUser, on_delete=models.CASCADE)
     exam_template = models.ForeignKey(ExamTemplate, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='written_exams')
-    grade = models.IntegerField()
+    grade = models.IntegerField(default=0)
+    date_modified = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student} + {self.exam_template}"
+
+    def get_absolute_url(self):
+        return reverse('main-exam-detail', kwargs={'pk':self.pk})
 
 
 class Comment(models.Model):
     user = models.ForeignKey(PGUser, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     content = models.CharField(max_length=100, default="Brak")
+    date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user} + {self.content}"

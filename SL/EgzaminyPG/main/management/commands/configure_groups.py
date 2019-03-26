@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 
 GROUPS = ['students', 'teachers']
-MODELS = ['exam templates', 'exam', 'comment']
+MODELS = ['exam template', 'exam', 'comment']
 
 ALL_PERMISSIONS = ['view', 'add', 'delete', 'change']  # For now only view permission by default for all, others include add, delete, change
 

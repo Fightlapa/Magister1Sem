@@ -1,20 +1,20 @@
 {% extends "app/layout.html" %}
 {% load user_tags %}
 {% block content %}
-{% for template in templates %}
-    {% if template.teacher == request.user %}
+{% for exam in exams %}
+    {% if exam.student == request.user %}
       <hr>
         <article class="media content-section">
           <div class="media-body">
               <div class="article-metadata">
-                  Stworzone przez {{ template.teacher }}
-                  <small class="text-muted">{{ template.date_modified|date:"F d, Y" }}</small>
+                  Stworzone przez {{ exam.teacher }}
+                  <small class="text-muted">{{ exam.date_modified|date:"F d, Y" }}</small>
               </div>
-              <h2><a class="article-title" href="{% url 'main-exam-template-detail' template.id %}">{{ template.name }}</a></h2>
+              <h2><a class="article-title" href="{% url 'main-exam-detail' exam.id %}">{{ exam.name }}</a></h2>
               <div class="container">
                   <div class = "row">
                       <div class="col-md-5 col-xs-7">
-                          <img src="{{ template.image.url }}" class="img-responsive"/>
+                          <img src="{{ exam.image.url }}" class="img-responsive"/>
                       </div>
                   </div>
               </div>

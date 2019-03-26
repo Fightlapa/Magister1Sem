@@ -18,21 +18,6 @@
           </div>
       </div>
       <br>
-      {% if object.teacher == user %}
-        {% if "perms.main.change_exam template" %}
-        <a class="btn btn-secondary" href="{% url 'main-update-exam-template' object.id %}">Zaktualizuj</a>
-        {% endif %}
-        {% if perms.main.add_exam %}
-        <a class="btn btn-secondary" href="{% url 'main-create-exam' exam_template=object.id %}">Dodaj rozwiązanie</a>
-        {% endif %}
-        {% if "perms.main.delete_exam template" %}
-        <a class="btn btn-danger" href="{% url 'main-delete-exam-template' object.id %}">Usuń</a>
-        {% endif %}
-
-      {% for exam in exams %}
-        <h2><a class="article-title" href="{% url 'main-exam-detail' exam.id %}">{{ exam.student.username }}</a></h2>
-      {% endfor %}
-      {% endif %}
     <!--<p class="article-content">{{ post.content }}</p>-->
   </div>
 </article>

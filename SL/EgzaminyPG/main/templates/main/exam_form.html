@@ -9,29 +9,19 @@
         <section id="registerForm">
             <form method="POST" class="form-horizontal" enctype="multipart/form-data">
                 {% csrf_token %}
-                <h4>Usuń wzór egzaminu "{{ object.name }}"</h4>
-                  <div class="container">
-                      <div class = "row">
-                          <div class="col-md-8 col-xs-7">
-                              <img src="{{ object.image.url }}" class="img-responsive"/>
-                          </div>
-                      </div>
-                  </div>
+                <h4>Stwórz lub aktualizuj egzamin.</h4>
                 <hr />
                 <fieldset class = "form-group">
                     {{ form|crispy }}
                 </fieldset>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <input type="submit" value="Usuń" class="btn btn-outline-danger" />
-                        <input href="{% url 'main-exam-template-detail' object.id %}" value="Anuluj" class="btn btn-outline-secondary" />
+                        <input type="hidden" name="next" value="/" />
+                        <input type="submit" value="Aktualizuj" class="btn btn-default" />
                     </div>
                 </div>
             </form>
         </section>
-    </div>
-    <div class="col-md-4">
-        <section id="socialRegisterForm"></section>
     </div>
 </div>
 

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import ExamTemplate
+from .models import ExamTemplate, Exam
 from .forms import PGUserRegisterForm
 
 # default template for these classes are: app/modelname_method.html
@@ -43,7 +43,7 @@ def register(request):
         {'form': form}
     )
 
-class exam_list_view(LoginRequiredMixin, ListView):
+class exam_templates_list_view(LoginRequiredMixin, ListView):
     model = ExamTemplate
     context_object_name = 'templates' # name of collection seen in template
     # Use it in case of skipping get_queryset
@@ -55,8 +55,13 @@ class exam_list_view(LoginRequiredMixin, ListView):
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
         return ExamTemplate.objects.filter(teacher=self.request.user).order_by('-date_modified')
 
-class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class exam_template_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = ExamTemplate
+
+    def get_context_data(self, **kwargs):
+        context = super(exam_template_detail_view, self).get_context_data(**kwargs) # get the default context data
+        context['exams'] = Exam.objects.filter(exam_template=self.kwargs['pk']) # add extra field to the context
+        return context
 
     # If authorized
     def test_func(self):
@@ -64,7 +69,7 @@ class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
             return True
         return False
 
-class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class exam_template_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ExamTemplate
     fields = ['name', 'image']
 
@@ -78,7 +83,7 @@ class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             return True
         return False
 
-class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class exam_template_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ExamTemplate
     fields = ['name', 'image']
 
@@ -94,7 +99,7 @@ class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return True
         return False
 
-class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class exam_template_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = ExamTemplate
     success_url = '/'
 
@@ -106,8 +111,8 @@ class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 class exam_list_view(LoginRequiredMixin, ListView):
-    model = ExamTemplate
-    context_object_name = 'templates' # name of collection seen in template
+    model = Exam
+    context_object_name = 'exams' # name of collection seen in template
     # Use it in case of skipping get_queryset
     #ordering = ['-date_modified']
     paginate_by = 3
@@ -115,4 +120,34 @@ class exam_list_view(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Not used until you use parameters, it means that there is variable in url like /user/{int}
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
-        return ExamTemplate.objects.filter(teacher=self.request.user).order_by('-date_modified')
+        return Exam.objects.filter(student=self.request.user).order_by('-date_modified')
+
+
+class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Exam
+    fields = ['image', 'student']
+
+    def form_valid(self, form):
+        form.instance.teacher = self.request.user
+        exam_template = self.get_queryset()
+        form.instance.exam_template = exam_template
+        return super().form_valid(form)
+
+    def get_queryset(self):
+        # Not used until you use parameters, it means that there is variable in url like /user/{int}
+        return get_object_or_404(ExamTemplate, id=self.kwargs.get('exam_template'))
+
+    # If authorized
+    def test_func(self):
+        if self.request.user.is_superuser:
+            return True
+        return False
+
+class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Exam
+
+    # If authorized
+    def test_func(self):
+        if self.request.user.is_superuser:
+            return True
+        return False
