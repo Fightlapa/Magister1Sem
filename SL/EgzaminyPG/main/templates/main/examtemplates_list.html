@@ -2,25 +2,27 @@
 
 {% block content %}
 {% for template in templates %}
-  <hr>
-    <article class="media content-section">
-      <div class="media-body">
-          <div class="article-metadata">
-              Stworzone przez {{ template.teacher }}
-              <small class="text-muted">{{ template.date_modified|date:"F d, Y" }}</small>
-          </div>
-          <h2><a class="article-title" href="{% url 'main-exam-detail' template.id %}">{{ template.name }}</a></h2>
-          <div class="container">
-              <div class = "row">
-                  <div class="col-md-5 col-xs-7">
-                      <img src="{{ template.image.url }}" class="img-responsive"/>
+    {% if template.teacher == request.user %}
+      <hr>
+        <article class="media content-section">
+          <div class="media-body">
+              <div class="article-metadata">
+                  Stworzone przez {{ template.teacher }}
+                  <small class="text-muted">{{ template.date_modified|date:"F d, Y" }}</small>
+              </div>
+              <h2><a class="article-title" href="{% url 'main-exam-detail' template.id %}">{{ template.name }}</a></h2>
+              <div class="container">
+                  <div class = "row">
+                      <div class="col-md-5 col-xs-7">
+                          <img src="{{ template.image.url }}" class="img-responsive"/>
+                      </div>
                   </div>
               </div>
+              <br>
+            <!--<p class="article-content">{{ post.content }}</p>-->
           </div>
-          <br>
-        <!--<p class="article-content">{{ post.content }}</p>-->
-      </div>
-    </article>
+        </article>
+    {% endif %}
 {% endfor %}
 {% if is_paginated %}
     {% if page_obj.has_previous %}

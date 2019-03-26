@@ -1,10 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import ExamTemplates
+from .models import ExamTemplates, PGUser
 from .forms import PGUserRegisterForm
-from django.contrib.auth.decorators import login_required
 # default template for these classes are: app/modelname_method.html
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.utils import timezone
@@ -40,34 +39,23 @@ def register(request):
         {'form': form}
     )
 
-@login_required
-def exam_templates(request):
-    """Renders the home page."""
-    context = {
-        'title':'Wzory egzaminów',
-        'templates': ExamTemplates.objects.all()
-    }
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'app/exam-templates.html',
-        context
-    )
-
 class exam_list_view(LoginRequiredMixin, ListView):
     model = ExamTemplates
-    template_name = 'app/exam-templates.html'
     context_object_name = 'templates' # name of collection seen in template
-    ordering = ['-date_modified']
+    # Use it in case of skipping get_queryset
+    #ordering = ['-date_modified']
     paginate_by = 3
+
+    def get_queryset(self):
+        # Not used until you use parameters, it means that there is variable in url like /user/{int}
+        # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
+        return ExamTemplates.objects.filter(teacher=self.request.user).order_by('-date_modified')
 
 class exam_detail_view(LoginRequiredMixin, DetailView):
     model = ExamTemplates
-    template_name = 'app/exam-template-detail.html'
 
 class exam_create_view(LoginRequiredMixin, CreateView):
     model = ExamTemplates
-    template_name = 'app/create-exam-template.html'
     fields = ['name', 'image']
 
     def form_valid(self, form):
@@ -77,7 +65,6 @@ class exam_create_view(LoginRequiredMixin, CreateView):
 
 class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ExamTemplates
-    template_name = 'app/update-exam-template.html'
     fields = ['name', 'image']
 
     def form_valid(self, form):
