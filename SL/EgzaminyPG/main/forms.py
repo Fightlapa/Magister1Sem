@@ -9,8 +9,5 @@ class PGUserRegisterForm(UserCreationForm):
         model = PGUser
         fields = ['username', 'indeks', 'password1', 'password2']
 
-class ExamTemplateForm(forms.ModelForm):
-    class Meta:
-        model = ExamTemplates
-        fields = ['name', 'image']
+
 

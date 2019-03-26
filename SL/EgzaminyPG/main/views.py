@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import ExamTemplates
-from .forms import PGUserRegisterForm, ExamTemplateForm
+from .forms import PGUserRegisterForm
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView
+# default template for these classes are: app/modelname_method.html
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.utils import timezone
 
 # Create your views here.
 
@@ -51,48 +54,53 @@ def exam_templates(request):
         context
     )
 
-def exam_list_view(ListView):
+class exam_list_view(LoginRequiredMixin, ListView):
     model = ExamTemplates
+    template_name = 'app/exam-templates.html'
+    context_object_name = 'templates' # name of collection seen in template
+    ordering = ['-date_modified']
+    paginate_by = 3
 
-@login_required
-def create_exam_template(request):
-    """Renders the home page."""
-    if request.method == 'POST':
-        form = ExamTemplateForm(request.POST, request.FILES)
-        if form.is_valid():
-            temporary = form.save(commit=False)
-            temporary.teacher = request.user
-            temporary.save()
-            name = form.cleaned_data.get('name')
-            messages.success(request, f'Stworzono wzór egzaminu o nazwie {name}!')
-            return redirect('main-exam-templates')
-    else:
-        form = ExamTemplateForm()
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'app/create-exam-template.html',
-        {'form': form}
-    )
+class exam_detail_view(LoginRequiredMixin, DetailView):
+    model = ExamTemplates
+    template_name = 'app/exam-template-detail.html'
 
-@login_required
-def update_exam_template(request, exam_id):
-    """Renders the home page."""
-    if request.method == 'POST':
-        form = ExamTemplateForm(request.POST, request.FILES, instance = ExamTemplates.objects.get(id=exam_id))
-        if form.is_valid():
-            temporary = form.save(commit=False)
-            temporary.teacher = request.user
-            temporary.save()
-            name = form.cleaned_data.get('name')
-            messages.success(request, f'Stworzono wzór egzaminu o nazwie {name}!')
-            return redirect('main-exam-templates')
-    else:
-        form = ExamTemplateForm(instance = ExamTemplates.objects.get(id=exam_id))
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'app/update-exam-template.html',
-        {'form': form}
-    )
+class exam_create_view(LoginRequiredMixin, CreateView):
+    model = ExamTemplates
+    template_name = 'app/create-exam-template.html'
+    fields = ['name', 'image']
+
+    def form_valid(self, form):
+        form.instance.teacher = self.request.user
+        return super().form_valid(form)
+
+
+class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = ExamTemplates
+    template_name = 'app/update-exam-template.html'
+    fields = ['name', 'image']
+
+    def form_valid(self, form):
+        form.instance.teacher = self.request.user
+        form.instance.date_modified = timezone.now
+        return super().form_valid(form)
+
+    # If authorized
+    def test_func(self):
+        exam_template = self.get_object()
+        if self.request.user == exam_template.teacher:
+            return True
+        return False
+
+class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ExamTemplates
+    success_url = '/'
+
+    # If authorized
+    def test_func(self):
+        exam_template = self.get_object()
+        if self.request.user == exam_template.teacher:
+            return True
+        return False
+
 

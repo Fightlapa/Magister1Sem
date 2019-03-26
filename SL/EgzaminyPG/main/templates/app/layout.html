@@ -27,6 +27,7 @@
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'main-logout' %}">Wyloguj się</a></li>
                         <li><a href="{% url 'main-exam-templates' %}">Wzory egzaminow</a></li>
+                        <li><a href="{% url 'main-create-exam-template' %}">Stwórz wzór egzaminu</a></li>
                     {% else %}
                         <li><a href="{% url 'main-register' %}">Zarejestruj się</a></li>
                         <li><a href="{% url 'main-login' %}">Zaloguj się</a></li>
