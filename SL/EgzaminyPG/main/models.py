@@ -10,7 +10,7 @@ class PGUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class ExamTemplates(models.Model):
+class ExamTemplate(models.Model):
     teacher = models.ForeignKey(PGUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, default="Brak")
     image = models.ImageField(default='default.jpg', upload_to='exam_templates')
@@ -24,7 +24,7 @@ class ExamTemplates(models.Model):
 
 class Exam(models.Model):
     student = models.ForeignKey(PGUser, on_delete=models.CASCADE)
-    exam_template = models.ForeignKey(ExamTemplates, on_delete=models.CASCADE)
+    exam_template = models.ForeignKey(ExamTemplate, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='written_exams')
     grade = models.IntegerField()
 

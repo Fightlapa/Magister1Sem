@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import ExamTemplates
+from .models import ExamTemplate
 from .forms import PGUserRegisterForm
 
 # default template for these classes are: app/modelname_method.html
@@ -44,7 +44,7 @@ def register(request):
     )
 
 class exam_list_view(LoginRequiredMixin, ListView):
-    model = ExamTemplates
+    model = ExamTemplate
     context_object_name = 'templates' # name of collection seen in template
     # Use it in case of skipping get_queryset
     #ordering = ['-date_modified']
@@ -53,10 +53,10 @@ class exam_list_view(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Not used until you use parameters, it means that there is variable in url like /user/{int}
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
-        return ExamTemplates.objects.filter(teacher=self.request.user).order_by('-date_modified')
+        return ExamTemplate.objects.filter(teacher=self.request.user).order_by('-date_modified')
 
 class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    model = ExamTemplates
+    model = ExamTemplate
 
     # If authorized
     def test_func(self):
@@ -65,7 +65,7 @@ class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return False
 
 class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    model = ExamTemplates
+    model = ExamTemplate
     fields = ['name', 'image']
 
     def form_valid(self, form):
@@ -79,7 +79,7 @@ class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return False
 
 class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = ExamTemplates
+    model = ExamTemplate
     fields = ['name', 'image']
 
     def form_valid(self, form):
@@ -95,7 +95,7 @@ class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return False
 
 class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = ExamTemplates
+    model = ExamTemplate
     success_url = '/'
 
     # If authorized
@@ -106,7 +106,7 @@ class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 class exam_list_view(LoginRequiredMixin, ListView):
-    model = ExamTemplates
+    model = ExamTemplate
     context_object_name = 'templates' # name of collection seen in template
     # Use it in case of skipping get_queryset
     #ordering = ['-date_modified']
@@ -115,4 +115,4 @@ class exam_list_view(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Not used until you use parameters, it means that there is variable in url like /user/{int}
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
-        return ExamTemplates.objects.filter(teacher=self.request.user).order_by('-date_modified')
+        return ExamTemplate.objects.filter(teacher=self.request.user).order_by('-date_modified')

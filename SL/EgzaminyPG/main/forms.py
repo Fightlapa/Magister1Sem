@@ -1,5 +1,5 @@
 from django import forms
-from .models import PGUser, ExamTemplates
+from .models import PGUser, ExamTemplate
 from django.contrib.auth.forms import UserCreationForm
 
 class PGUserRegisterForm(UserCreationForm):
