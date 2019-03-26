@@ -1,0 +1,28 @@
+{% extends "app/layout.html" %}
+
+{% block content %}
+<hr>
+<article class="media content-section">
+  <div class="media-body">
+      <div class="article-metadata">
+        Stworzone przez {{ object.teacher }}
+        <small class="text-muted">{{ object.date_modified|date:"F d, Y" }}</small>
+          <!--<small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>-->
+      </div>
+      <h2>{{ object.name }}</h2>
+      <div class="container">
+          <div class = "row">
+              <div class="col-md-6 col-xs-7">
+                  <img src="{{ object.image.url }}" class="img-responsive"/>
+              </div>
+          </div>
+      </div>
+      <br>
+      {% if object.teacher == user %}
+        <a class="btn btn-secondary" href="{% url 'main-update-exam-template' object.id %}">Zaktualizuj</a>
+        <a class="btn btn-danger" href="{% url 'main-delete-exam-template' object.id %}">usuń</a>
+      {% endif %}
+    <!--<p class="article-content">{{ post.content }}</p>-->
+  </div>
+</article>
+{% endblock %}
