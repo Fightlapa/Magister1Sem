@@ -1,0 +1,16 @@
+from django import forms
+from .models import PGUser, ExamTemplates
+from django.contrib.auth.forms import UserCreationForm
+
+class PGUserRegisterForm(UserCreationForm):
+    indeks = forms.IntegerField()
+
+    class Meta:
+        model = PGUser
+        fields = ['username', 'indeks', 'password1', 'password2']
+
+class ExamTemplateForm(forms.ModelForm):
+    class Meta:
+        model = ExamTemplates
+        fields = ['name', 'image']
+

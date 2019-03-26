@@ -1,0 +1,36 @@
+{% extends "app/layout.html" %}
+
+{% load crispy_forms_tags %}
+{% block content %}
+
+<h2>{{ title }}</h2>
+<div class="row">
+    <div class="col-md-8">
+        <section id="registerForm">
+            <form method="POST" class="form-horizontal" enctype="multipart/form-data">
+                {% csrf_token %}
+                <h4>Zaktualizuj egzamin.</h4>
+                <hr />
+                <fieldset class = "form-group">
+                    {{ form|crispy }}
+                </fieldset>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="hidden" name="next" value="/" />
+                        <input type="submit" value="Aktualizuj" class="btn btn-default" />
+                    </div>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+    {% load staticfiles %}
+<script src="{% static 'app/scripts/jquery.validate.min.js' %}"></script>
+
+{% endblock %}

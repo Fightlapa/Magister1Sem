@@ -1,0 +1,3 @@
+"manage.py makemigrations" - uaktualnia zmiany w models
+"manage.py sqlmigrate nazwa_app nrofmakemigration" - tworzy SQL baze
+"manage.py migrate" - submit

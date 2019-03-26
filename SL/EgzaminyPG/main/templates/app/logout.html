@@ -1,0 +1,18 @@
+{% extends "app/layout.html" %}
+
+{% block content %}
+
+<h2>{{ title }}</h2>
+<div class="row">
+    <div class="col-md-8">
+        <a href="{% url 'main-login' %}">Zaloguj się ponownie</a>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+{% load staticfiles %}
+{% endblock %}

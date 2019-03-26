@@ -1,0 +1,27 @@
+{% extends "app/layout.html" %}
+
+{% block content %}
+<a href="{% url 'main-create-exam-template' %}">Stwórz egzamin</a>
+{% for template in templates %}
+  <hr>
+    <article class="media content-section">
+      <div class="media-body">
+          <div class="article-metadata">
+            Stworzone przez {{ template.teacher }}
+              <!--<small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>-->
+          </div>
+          <h2>{{ template.name }}</h2>
+          <div class="container">
+              <div class = "row">
+                  <div class="col-md-6 col-xs-7">
+                      <img src="{{ template.image.url }}" class="img-responsive"/>
+                  </div>
+              </div>
+          </div>
+          <br>
+          <a href="{% url 'main-update-exam-template' exam_id=template.id %}">Zaktualizuj dane</a>
+        <!--<p class="article-content">{{ post.content }}</p>-->
+      </div>
+    </article>
+{% endfor %}
+{% endblock %}
