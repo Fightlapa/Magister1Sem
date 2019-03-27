@@ -12,37 +12,38 @@
 </head>
 
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
                 <a href="/" class="navbar-brand">Egzaminy PG</a>
             </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a href="{% url 'main-home' %}">Strona startowa</a></li>
-                    {% if user.is_authenticated %}
-                        {% if request.user|has_group:"teachers" %}
-                        <li><a href="{% url 'main-exam-templates' %}">Wzory egzaminow</a></li>
-                        <li><a href="{% url 'main-create-exam-template' %}">Stwórz wzór egzaminu</a></li>
+            <div class="w-100">
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav mr-auto">
+                        {% if user.is_authenticated %}
+                            {% if request.user|has_group:"teachers" %}
+                            <li><a href="{% url 'main-exam-templates' %}">Wzory egzaminow</a></li>
+                            <li><a href="{% url 'main-create-exam-template' %}">Stwórz wzór egzaminu</a></li>
+                            {% endif %}
+                            {% if request.user|has_group:"students" %}
+                            <li><a href="{% url 'main-exam' %}">Twoje egzaminy</a></li>
+                            {% endif %}
                         {% endif %}
-                        {% if request.user|has_group:"students" %}
-                        <li><a href="{% url 'main-exam' %}">Twoje egzaminy</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                          {% if user.is_authenticated %}
+                            <li><a>Zalogowany jako {{ request.user.username }}</a></li>
+                            <li><a href="{% url 'main-logout' %}">Wyloguj się</a></li>
+                        {% else %}
+                            <li><a href="{% url 'main-register' %}">Zarejestruj się</a></li>
+                            <li><a href="{% url 'main-login' %}">Zaloguj się</a></li>
                         {% endif %}
-                        <li><a href="{% url 'main-logout' %}">Wyloguj się</a></li>
-                    {% else %}
-                        <li><a href="{% url 'main-register' %}">Zarejestruj się</a></li>
-                        <li><a href="{% url 'main-login' %}">Zaloguj się</a></li>
-                    {% endif %}
-                </ul>
+                    </ul>
 
+                </div>
             </div>
         </div>
-    </div>
+    </nav>
     <div class="container body-content">
     {% if messages %}
         {% for message in messages %}
@@ -53,10 +54,10 @@
     {% endif %}
 
 {% block content %}{% endblock %}
-        <hr/>
-        <footer>
-            <p>&copy; {{ year }} - Projekt grupowy PG</p>
-        </footer>
+        <!--<hr/>-->
+        <!--<footer>-->
+            <!--<p>&copy; {{ year }} - Projekt grupowy PG</p>-->
+        <!--</footer>-->
     </div>
 
     <script src="{% static 'app/scripts/jquery-1.10.2.js' %}"></script>

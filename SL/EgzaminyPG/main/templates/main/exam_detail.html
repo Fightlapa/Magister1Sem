@@ -5,7 +5,16 @@
 <article class="media content-section">
   <div class="media-body">
       <div class="article-metadata">
-        Stworzone przez {{ object.teacher }}
+          {% if request.user|has_group:"teachers" %}
+            Egzamin studenta: {{ object.student }} (indeks {{ object.student.indeks }})
+          <br>
+          {% endif %}
+           {% if request.user|has_group:"students" %}
+            Egzamin nauczyciela: {{ object.exam_template.teacher }}
+          <br>
+          {% endif %}
+        Ocena {{ object.grade }}
+          <br>
         <small class="text-muted">{{ object.date_modified|date:"F d, Y" }}</small>
           <!--<small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>-->
       </div>
@@ -18,6 +27,13 @@
           </div>
       </div>
       <br>
+        {% if perms.main.change_exam %}
+        <a class="btn btn-secondary" href="{% url 'main-update-exam' object.id %}">Zaktualizuj</a>
+        {% endif %}
+        {% if perms.main.delete_exam %}
+        <a class="btn btn-danger" href="{% url 'main-delete-exam' object.id %}">Usuń</a>
+        {% endif %}
+
     <!--<p class="article-content">{{ post.content }}</p>-->
   </div>
 </article>

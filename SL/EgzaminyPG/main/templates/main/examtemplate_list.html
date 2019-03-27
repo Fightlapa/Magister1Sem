@@ -7,7 +7,6 @@
         <article class="media content-section">
           <div class="media-body">
               <div class="article-metadata">
-                  Stworzone przez {{ template.teacher }}
                   <small class="text-muted">{{ template.date_modified|date:"F d, Y" }}</small>
               </div>
               <h2><a class="article-title" href="{% url 'main-exam-template-detail' template.id %}">{{ template.name }}</a></h2>

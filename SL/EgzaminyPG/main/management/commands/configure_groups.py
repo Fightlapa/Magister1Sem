@@ -22,7 +22,7 @@ GROUP_AND_PERMISSIONS = \
         },
     'teachers':
         {
-            'exam templates': ['view', 'add', 'change', 'delete'],
+            'exam template': ['view', 'add', 'change', 'delete'],
             'exam': ['view', 'add', 'change', 'delete'],
             'comment': ['view', 'add', 'change', 'delete']
         }

@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest
 from django.contrib import messages
+from django.contrib.auth import models
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import ExamTemplate, Exam
-from .forms import PGUserRegisterForm
+from .models import ExamTemplate, Exam, PGUser
+from .forms import PGUserRegisterForm, ExamForm
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group
 
 # default template for these classes are: app/modelname_method.html
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -43,7 +46,7 @@ def register(request):
         {'form': form}
     )
 
-class exam_templates_list_view(LoginRequiredMixin, ListView):
+class exam_templates_list_view(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = ExamTemplate
     context_object_name = 'templates' # name of collection seen in template
     # Use it in case of skipping get_queryset
@@ -55,6 +58,13 @@ class exam_templates_list_view(LoginRequiredMixin, ListView):
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
         return ExamTemplate.objects.filter(teacher=self.request.user).order_by('-date_modified')
 
+    # If authorized
+    def test_func(self):
+        # if self.request.user.has_perm('main.view_exam template'):
+        if self.request.user in PGUser.objects.filter(groups__name='teachers'):
+            return True
+        return False
+
 class exam_template_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = ExamTemplate
 
@@ -65,7 +75,8 @@ class exam_template_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailV
 
     # If authorized
     def test_func(self):
-        if self.request.user.is_superuser:
+        # if self.request.user.has_perm('main.view_exam template'):
+        if self.request.user in PGUser.objects.filter(groups__name='teachers'):
             return True
         return False
 
@@ -79,7 +90,8 @@ class exam_template_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateV
 
     # If authorized
     def test_func(self):
-        if self.request.user.is_superuser:
+        # if self.request.user.has_perm('main.add_exam template'):
+        if self.request.user in PGUser.objects.filter(groups__name='teachers'):
             return True
         return False
 
@@ -95,7 +107,8 @@ class exam_template_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     # If authorized
     def test_func(self):
         exam_template = self.get_object()
-        if self.request.user == exam_template.teacher:
+        # if self.request.user.has_perm('main.change_exam template') and self.request.user == exam_template.teacher:
+        if self.request.user in PGUser.objects.filter(groups__name='teachers') and self.request.user == exam_template.teacher:
             return True
         return False
 
@@ -106,11 +119,12 @@ class exam_template_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteV
     # If authorized
     def test_func(self):
         exam_template = self.get_object()
-        if self.request.user == exam_template.teacher:
+        # if self.request.user.has_perm('main.delete_exam template') and self.request.user == exam_template.teacher:
+        if self.request.user in PGUser.objects.filter(groups__name='teachers') and self.request.user == exam_template.teacher:
             return True
         return False
 
-class exam_list_view(LoginRequiredMixin, ListView):
+class exam_list_view(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Exam
     context_object_name = 'exams' # name of collection seen in template
     # Use it in case of skipping get_queryset
@@ -122,10 +136,17 @@ class exam_list_view(LoginRequiredMixin, ListView):
         # user = get_object_or_404(PGUser, username=self.kwargs.get('paramname'))
         return Exam.objects.filter(student=self.request.user).order_by('-date_modified')
 
+    # If authorized
+    def test_func(self):
+        # if self.request.user.has_perm('main.view_exam'):
+        if self.request.user in PGUser.objects.filter(groups__name='students'):
+            return True
+        return False
+
 
 class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Exam
-    fields = ['image', 'student']
+    form_class = ExamForm
 
     def form_valid(self, form):
         form.instance.teacher = self.request.user
@@ -139,7 +160,8 @@ class exam_create_view(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     # If authorized
     def test_func(self):
-        if self.request.user.is_superuser:
+        # if self.request.user.has_perm('main.create_exam'):
+        if self.request.user in PGUser.objects.filter(groups__name='teachers'):
             return True
         return False
 
@@ -148,6 +170,36 @@ class exam_detail_view(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     # If authorized
     def test_func(self):
-        if self.request.user.is_superuser:
+        exam = self.get_object()
+        # if self.request.user.has_perm('main.view_exam') and self.request.user == exam.exam_template.teacher or self.request.user == exam.student:
+        if self.request.user.groups.filter(name__in=['students', 'teachers']).exists() and (self.request.user == exam.exam_template.teacher or self.request.user == exam.student):
+            return True
+        return False
+
+class exam_update_view(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Exam
+    fields = ['image']
+
+    def form_valid(self, form):
+        form.instance.date_modified = timezone.now
+        return super().form_valid(form)
+
+    # If authorized
+    def test_func(self):
+        exam = self.get_object()
+        # if self.request.user.has_perm('main.change_exam') and self.request.user == exam.exam_template.teacher or self.request.user == exam.student:
+        if self.request.user in PGUser.objects.filter(groups__name='teachers') and self.request.user == exam.exam_template.teacher or self.request.user == exam.student:
+            return True
+        return False
+
+class exam_delete_view(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Exam
+    success_url = '/'
+
+    # If authorized
+    def test_func(self):
+        exam = self.get_object()
+        # if self.request.user.has_perm('main.delete_exam') and self.request.user == exam.exam_template.teacher:
+        if self.request.user in PGUser.objects.filter(groups__name='teachers') and self.request.user == exam.exam_template.teacher:
             return True
         return False

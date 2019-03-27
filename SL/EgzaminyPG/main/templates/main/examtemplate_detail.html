@@ -5,7 +5,6 @@
 <article class="media content-section">
   <div class="media-body">
       <div class="article-metadata">
-        Stworzone przez {{ object.teacher }}
         <small class="text-muted">{{ object.date_modified|date:"F d, Y" }}</small>
           <!--<small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>-->
       </div>
@@ -29,6 +28,7 @@
         <a class="btn btn-danger" href="{% url 'main-delete-exam-template' object.id %}">Usuń</a>
         {% endif %}
 
+      <h1>Rozwiązania studentów:</h1>
       {% for exam in exams %}
         <h2><a class="article-title" href="{% url 'main-exam-detail' exam.id %}">{{ exam.student.username }}</a></h2>
       {% endfor %}

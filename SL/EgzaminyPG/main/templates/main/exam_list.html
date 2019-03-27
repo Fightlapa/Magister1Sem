@@ -7,10 +7,9 @@
         <article class="media content-section">
           <div class="media-body">
               <div class="article-metadata">
-                  Stworzone przez {{ exam.teacher }}
                   <small class="text-muted">{{ exam.date_modified|date:"F d, Y" }}</small>
               </div>
-              <h2><a class="article-title" href="{% url 'main-exam-detail' exam.id %}">{{ exam.name }}</a></h2>
+              <h2><a class="article-title" href="{% url 'main-exam-detail' exam.id %}">Egzamin {{ exam.exam_template.name }}</a></h2>
               <div class="container">
                   <div class = "row">
                       <div class="col-md-5 col-xs-7">
