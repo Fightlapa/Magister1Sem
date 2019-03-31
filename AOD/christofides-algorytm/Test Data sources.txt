@@ -1,0 +1,7 @@
+http://www.math.uwaterloo.ca/tsp/vlsi/xqg237.tour.html
+http://www.math.uwaterloo.ca/tsp/vlsi/xqg237.tsp
+564
+
+1019
+http://www.math.uwaterloo.ca/tsp/vlsi/xqf131.points.html
+http://www.math.uwaterloo.ca/tsp/vlsi/xqf131.tsp

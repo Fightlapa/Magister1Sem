@@ -1,43 +1,16 @@
-/*************************************************************************
-Title: TSP.hpp
-Description: TSP class specification file for our Christofides implementation
-Authors: Sean Hinds, Ryan Hong, Jeff Herlitz
-Date: 08/16/17
-Changes:
-- cities coordinates changed from int to double
-- removed unused members
-*************************************************************************/
-
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <queue>
-#include <stack>
 #include <string>
-#include <stdio.h>
 #include <vector>
 
 using namespace std;
 
-#ifndef TSP_H
-#define TSP_H
-
-class TSP
+class Christofides
 {
-private:
-
-    struct City {
+    struct Node {
         double x;
         double y;
     };
 
     string iFile;
-    string oFile;
 
     // List of odd nodes
     vector<int>odds;
@@ -46,11 +19,6 @@ private:
     vector<int> *adjList;
 
     void findOdds();
-
-
-
-protected:
-
 
 public:
     // Number of cities
@@ -62,7 +30,7 @@ public:
     //euler circuit
     vector<int> circuit;
 
-    vector<City> cities;
+    vector<Node> cities;
 
     // n x n, pairwise distances between cities
     typedef double distance_t;
@@ -72,12 +40,12 @@ public:
     vector<int>* adjlist;
 
     // Constructor
-    TSP(string in, string out);
+    Christofides(string in);
 
     // Destructor
-    ~TSP();
+    ~Christofides();
 
-    distance_t get_distance(struct City c1, struct City c2);
+    distance_t get_distance(struct Node c1, struct Node c2);
 
     //Find perfect matching
     void perfectMatching();
@@ -106,5 +74,3 @@ public:
     int findBestPath(int start);
 
 };
-
-#endif

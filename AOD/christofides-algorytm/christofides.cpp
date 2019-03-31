@@ -1,23 +1,27 @@
-/*************************************************************************
-Title: Christofides.cpp
-Description: Christofides class implementation file for our Christofides implementation
-Authors: Sean Hinds, Ryan Hong, Jeff Herlitz
-Date: 08/16/17
-*************************************************************************/
-
 #include "christofides.h"
 
 #include <assert.h>
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <stack>
+#include <string>
+#include <stdio.h>
+#include <vector>
 
 
-TSP::distance_t const TSP::DINF = 1.0e+99;
+Christofides::distance_t const Christofides::DINF = 1.0e+99;
 
 //Constructor
-TSP::TSP(string in, string out) {
+Christofides::Christofides(string in) {
     iFile = in;
-    oFile = out;
 
     ifstream inStream;
     inStream.open(iFile.c_str(), ios::in);
@@ -28,12 +32,12 @@ TSP::TSP(string in, string out) {
     }
 
     //READ DATA
-    int c; double x, y;
+    double x, y;
     int count = 0;
     while (!inStream.eof()) {
         inStream >> x >> y;
         count++;
-        struct City newCity = { x,y };
+        struct Node newCity = { x,y };
         cities.push_back(newCity);
     }
     count--;
@@ -58,7 +62,7 @@ TSP::TSP(string in, string out) {
 }
 
 //Destructor
-TSP::~TSP() {
+Christofides::~Christofides() {
     for (int i = 0; i < n; i++) {
         delete[] graph[i];
     }
@@ -66,14 +70,14 @@ TSP::~TSP() {
     delete[] adjlist;
 }
 
-TSP::distance_t TSP::get_distance(struct TSP::City c1, struct TSP::City c2) {
+Christofides::distance_t Christofides::get_distance(struct Christofides::Node c1, struct Christofides::Node c2) {
     double dx = c1.x - c2.x;
     double dy = c1.y - c2.y;
     double d = sqrt(dx*dx + dy * dy);
     return (distance_t)d;
 }
 
-void TSP::fillMatrix() {
+void Christofides::fillMatrix() {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             graph[i][j] = graph[j][i] = get_distance(cities[i], cities[j]);
@@ -87,7 +91,7 @@ This function uses Prim's algorithm to determine a minimum spanning tree on
 the graph
 ******************************************************************************/
 
-void TSP::findMST() {
+void Christofides::findMST() {
 
     distance_t *key = new distance_t[n];
     bool *included = new bool[n];
@@ -154,7 +158,7 @@ void TSP::findMST() {
 find the index of the closest unexamined node
 ******************************************************************************/
 
-int TSP::getMinIndex(distance_t key[], bool mst[]) {
+int Christofides::getMinIndex(distance_t key[], bool mst[]) {
 
     // initialize min and min_index
     distance_t min = DINF;
@@ -184,7 +188,7 @@ int TSP::getMinIndex(distance_t key[], bool mst[]) {
 find all vertices of odd degree in the MST. Store them in an subgraph O
 ******************************************************************************/
 
-void TSP::findOdds() {
+void Christofides::findOdds() {
 
     for (int i = 0; i < n; i++) {
 
@@ -201,7 +205,7 @@ void TSP::findOdds() {
 }
 
 
-void TSP::perfectMatching() {
+void Christofides::perfectMatching() {
     /************************************************************************************
     find a perfect matching M in the subgraph O using greedy algorithm but not minimum
     *************************************************************************************/
@@ -234,7 +238,7 @@ void TSP::perfectMatching() {
 
 
 //find an euler circuit
-void TSP::euler_tour(int start, vector<int> &path) {
+void Christofides::euler_tour(int start, vector<int> &path) {
     assert((start >= 0) && (start < n));
     //Create copy of adj. list
     vector<int> *tempList = new vector<int>[n];
@@ -278,7 +282,7 @@ void TSP::euler_tour(int start, vector<int> &path) {
 
 
 //Make euler tour Hamiltonian
-void TSP::make_hamiltonian(vector<int> &path, int &pathCost) {
+void Christofides::make_hamiltonian(vector<int> &path, int &pathCost) {
     //remove visited nodes from Euler tour
     bool *visited = new bool[n];
     for (int i = 0; i < n; i++) {
@@ -309,7 +313,7 @@ void TSP::make_hamiltonian(vector<int> &path, int &pathCost) {
     pathCost += graph[*cur][*begin];
 }
 
-int TSP::findBestPath(int start) {
+int Christofides::findBestPath(int start) {
     vector<int> path;
     euler_tour(start, path);
 
@@ -318,19 +322,7 @@ int TSP::findBestPath(int start) {
 
     return length;
 }
-
-
-void TSP::printResult() {
-    ofstream outputStream;
-    outputStream.open(oFile.c_str(), ios::out);
-    outputStream << pathLength << endl;
-    for (vector<int>::iterator it = circuit.begin(); it != circuit.end(); ++it) {
-        outputStream << *it << " " << cities[*it].x << " " << cities[*it].y << endl;
-    }
-    outputStream.close();
-};
-
-void TSP::printPath() {
+void Christofides::printPath() {
     cout << endl;
     for (vector<int>::iterator it = circuit.begin(); it != circuit.end() - 1; ++it) {
         cout << *it << " to " << *(it + 1) << " ";
@@ -340,12 +332,12 @@ void TSP::printPath() {
     cout << "\nLength: " << pathLength << endl << endl;
 };
 
-void TSP::printEuler() {
+void Christofides::printEuler() {
     for (vector<int>::iterator it = circuit.begin(); it != circuit.end(); ++it)
         cout << *it << endl;
 }
 
-void TSP::printAdjList() {
+void Christofides::printAdjList() {
     for (int i = 0; i < n; i++) {
         cout << i << ": "; //print which vertex's edge list follows
         for (int j = 0; j < (int)adjlist[i].size(); j++) {
@@ -355,9 +347,9 @@ void TSP::printAdjList() {
     }
 };
 
-void TSP::printCities() {
+void Christofides::printCities() {
     cout << endl;
     int i = 0;
-    for (vector<City>::iterator it = cities.begin(); it != cities.end(); ++it)
+    for (vector<Node>::iterator it = cities.begin(); it != cities.end(); ++it)
         cout << i++ << ":  " << it->x << " " << it->y << endl;
 }
