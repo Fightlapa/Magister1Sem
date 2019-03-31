@@ -1,8 +1,11 @@
 /*************************************************************************
-Title: Christofides.hpp
-Description: Christofides class specification file for our Christofides implementation
+Title: TSP.hpp
+Description: TSP class specification file for our Christofides implementation
 Authors: Sean Hinds, Ryan Hong, Jeff Herlitz
 Date: 08/16/17
+Changes:
+- cities coordinates changed from int to double
+- removed unused members
 *************************************************************************/
 
 #include <algorithm>
@@ -18,35 +21,31 @@ Date: 08/16/17
 #include <string>
 #include <stdio.h>
 #include <vector>
-#include <limits>
 
 using namespace std;
 
 #ifndef TSP_H
 #define TSP_H
 
-class Christofides
+class TSP
 {
 private:
 
-	struct City{
-		int x;
-		int y;
-	};
+    struct City {
+        double x;
+        double y;
+    };
 
-	string iFile;
-	string oFile;
+    string iFile;
+    string oFile;
 
-	// List of odd nodes
-	vector<int>odds;
+    // List of odd nodes
+    vector<int>odds;
 
-	//Smaller cost matrix to find minimum matching on odd nodes
-	int **cost;
+    //Adjacency list
+    vector<int> *adjList;
 
-	//Adjacency list
-	vector<int> *adjList;
-
-	void findOdds();
+    void findOdds();
 
 
 
@@ -54,58 +53,57 @@ protected:
 
 
 public:
-	// Number of cities
-	int n;
+    // Number of cities
+    int n;
 
-	//path
-	int **path_vals;
+    //Shortest path length
+    int pathLength;
 
-	//Shortest path length
-	int pathLength;
+    //euler circuit
+    vector<int> circuit;
 
-	//euler circuit
-	vector<int> circuit;
+    vector<City> cities;
 
-	vector<City> cities;
+    // n x n, pairwise distances between cities
+    typedef double distance_t;
+    distance_t **graph;
+    static distance_t const DINF;
 
-	// n x n, pairwise distances between cities
-	int **graph;
+    vector<int>* adjlist;
 
-  vector<int>* adjlist;
+    // Constructor
+    TSP(string in, string out);
 
-	// Constructor
-	Christofides(string in, string out);
+    // Destructor
+    ~TSP();
 
-	// Destructor
-	~Christofides();
+    distance_t get_distance(struct City c1, struct City c2);
 
-	int get_distance(struct City c1, struct City c2);
+    //Find perfect matching
+    void perfectMatching();
 
-	//Find perfect matching
-	void perfectMatching();
+    //Find Euler tour
+    void euler_tour(int start, vector<int> &path);
 
-	//Find Euler tour
-	void euler_tour(int start, vector<int> &path);
+    //Find Hamiltonian path
+    void make_hamiltonian(vector<int> &path, int &pathCost);
 
-	//Find Hamiltonian path
-	void make_hamiltonian(vector<int> &path, int &pathCost);
+    // Prim's algorithm
+    void findMST();
 
-	// Prim's algorithm
-	void findMST();
+    int getMinIndex(distance_t key[], bool mst[]);
 
-	int getMinIndex(int key[], bool mst[]);
+    void printResult();
+    void printPath();
+    void printEuler();
+    void printAdjList();
+    void printCities();
 
-	void printResult();
-	void printPath();
-	void printEuler();
-	void printAdjList();
-	void printCities();
+    int get_size() { return n; };
 
-	int get_size(){return n;};
+    void fillMatrix();
 
-	void fillMatrix();
-
-	int findBestPath(int start);
+    int findBestPath(int start);
 
 };
 
