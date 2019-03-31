@@ -300,8 +300,8 @@ void Christofides::make_hamiltonian(vector<int> &path, int &pathCost) {
     pathCost += graph[*cur][*begin];
 }
 
-void Christofides::euler_tour(int start) {
-    euler_tour(start, circuit);
+void Christofides::euler_tour() {
+    euler_tour(shortestPathStartNode, circuit);
 }
 
 int Christofides::findBestPath(int start) {
@@ -316,7 +316,6 @@ int Christofides::findBestPath(int start) {
 
 void Christofides::find_shortest_path()
 {
-    // Loop through each index and find shortest path, save starting index
     Christofides::distance_t best = Christofides::DINF;
     shortestPathStartNode = -1;
     for (long t = 0; t < n; t++) {

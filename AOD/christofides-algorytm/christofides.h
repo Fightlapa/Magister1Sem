@@ -54,7 +54,7 @@ public:
     void perfectMatching();
 
     //Find Euler tour with own circuit
-    void euler_tour(int start);
+    void euler_tour();
 
     //Find Euler tour
     void euler_tour(int start, vector<int> &path);
