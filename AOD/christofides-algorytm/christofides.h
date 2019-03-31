@@ -27,6 +27,9 @@ public:
     //Shortest path length
     int pathLength;
 
+    //Shortest path starting node index
+    int shortestPathStartNode;
+
     //euler circuit
     vector<int> circuit;
 
@@ -50,26 +53,28 @@ public:
     //Find perfect matching
     void perfectMatching();
 
+    //Find Euler tour with own circuit
+    void euler_tour(int start);
+
     //Find Euler tour
     void euler_tour(int start, vector<int> &path);
 
     //Find Hamiltonian path
     void make_hamiltonian(vector<int> &path, int &pathCost);
 
+    //Find Hamiltonian from existing euler tour
+    void make_hamiltonian();
+
     // Prim's algorithm
-    void findMST();
+    void findMinimumSpanningTree();
 
     int getMinIndex(distance_t key[], bool mst[]);
 
-    void printResult();
     void printPath();
-    void printEuler();
-    void printAdjList();
-    void printCities();
-
-    int get_size() { return n; };
 
     void fillMatrix();
+
+    void find_shortest_path();
 
     int findBestPath(int start);
 

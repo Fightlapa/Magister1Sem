@@ -1,4 +1,4 @@
-#include "christofides.h"
+﻿#include "christofides.h"
 
 #include <assert.h>
 #include <algorithm>
@@ -41,14 +41,12 @@ Christofides::Christofides(string in) {
         cities.push_back(newCity);
     }
     count--;
-    cout << "cities created" << endl;
+    cout << "węzły stworzone" << endl;
     inStream.close();
 
     std::srand(unsigned(std::time(0)));
     std::random_shuffle(cities.begin(), cities.end());
 
-
-    //Initialize member variables
     n = count;
     graph = new distance_t*[n];
     for (int i = 0; i < n; i++) {
@@ -61,7 +59,6 @@ Christofides::Christofides(string in) {
     adjlist = new vector<int>[n];
 }
 
-//Destructor
 Christofides::~Christofides() {
     for (int i = 0; i < n; i++) {
         delete[] graph[i];
@@ -86,13 +83,8 @@ void Christofides::fillMatrix() {
 }
 
 
-/******************************************************************************
-This function uses Prim's algorithm to determine a minimum spanning tree on
-the graph
-******************************************************************************/
-
-void Christofides::findMST() {
-
+void Christofides::findMinimumSpanningTree() {
+    // Prim's algorithm
     distance_t *key = new distance_t[n];
     bool *included = new bool[n];
     int *parent = new int[n];
@@ -124,7 +116,7 @@ void Christofides::findMST() {
 
             // node exists, is unexamined, and graph[k][j] less than previous
             // key for u
-            if (graph[k][j] && included[j] == false && graph[k][j] < key[j]) {
+            if (graph[k][j] && !included[j] && graph[k][j] < key[j]) {
 
                 // update parent
                 parent[j] = k;
@@ -154,11 +146,8 @@ void Christofides::findMST() {
 }
 
 
-/******************************************************************************
-find the index of the closest unexamined node
-******************************************************************************/
-
 int Christofides::getMinIndex(distance_t key[], bool mst[]) {
+    // find the index of the closest unexamined node
 
     // initialize min and min_index
     distance_t min = DINF;
@@ -168,7 +157,7 @@ int Christofides::getMinIndex(distance_t key[], bool mst[]) {
     for (int i = 0; i < n; i++) {
 
         // if vertex hasn't been visited and has a smaller key than min
-        if (mst[i] == false && key[i] < min) {
+        if (!mst[i] && key[i] < min) {
 
             // reassign min and min_index to the values from this node
             min = key[i];
@@ -184,11 +173,8 @@ int Christofides::getMinIndex(distance_t key[], bool mst[]) {
 }
 
 
-/******************************************************************************
-find all vertices of odd degree in the MST. Store them in an subgraph O
-******************************************************************************/
-
 void Christofides::findOdds() {
+    // find all vertices of odd degree in the MST. Store them in an subgraph O
 
     for (int i = 0; i < n; i++) {
 
@@ -206,9 +192,8 @@ void Christofides::findOdds() {
 
 
 void Christofides::perfectMatching() {
-    /************************************************************************************
-    find a perfect matching M in the subgraph O using greedy algorithm but not minimum
-    *************************************************************************************/
+    // find a perfect matching M in the subgraph O
+
     int closest;
     std::vector<int>::iterator tmp, first;
 
@@ -236,8 +221,6 @@ void Christofides::perfectMatching() {
     }
 }
 
-
-//find an euler circuit
 void Christofides::euler_tour(int start, vector<int> &path) {
     assert((start >= 0) && (start < n));
     //Create copy of adj. list
@@ -280,9 +263,13 @@ void Christofides::euler_tour(int start, vector<int> &path) {
     delete[] tempList;
 }
 
+void Christofides::make_hamiltonian() {
+    make_hamiltonian(circuit, pathLength);
+}
 
-//Make euler tour Hamiltonian
 void Christofides::make_hamiltonian(vector<int> &path, int &pathCost) {
+    // From euler tour to Hamiltonian
+
     //remove visited nodes from Euler tour
     bool *visited = new bool[n];
     for (int i = 0; i < n; i++) {
@@ -313,6 +300,10 @@ void Christofides::make_hamiltonian(vector<int> &path, int &pathCost) {
     pathCost += graph[*cur][*begin];
 }
 
+void Christofides::euler_tour(int start) {
+    euler_tour(start, circuit);
+}
+
 int Christofides::findBestPath(int start) {
     vector<int> path;
     euler_tour(start, path);
@@ -322,6 +313,21 @@ int Christofides::findBestPath(int start) {
 
     return length;
 }
+
+void Christofides::find_shortest_path()
+{
+    // Loop through each index and find shortest path, save starting index
+    Christofides::distance_t best = Christofides::DINF;
+    shortestPathStartNode = -1;
+    for (long t = 0; t < n; t++) {
+        Christofides::distance_t result = findBestPath(t);
+        if (result < best) {
+            shortestPathStartNode = t;
+            best = result;
+        }
+    }
+}
+
 void Christofides::printPath() {
     cout << endl;
     for (vector<int>::iterator it = circuit.begin(); it != circuit.end() - 1; ++it) {
@@ -331,25 +337,3 @@ void Christofides::printPath() {
     cout << *(circuit.end() - 1) << " to " << circuit.front();
     cout << "\nLength: " << pathLength << endl << endl;
 };
-
-void Christofides::printEuler() {
-    for (vector<int>::iterator it = circuit.begin(); it != circuit.end(); ++it)
-        cout << *it << endl;
-}
-
-void Christofides::printAdjList() {
-    for (int i = 0; i < n; i++) {
-        cout << i << ": "; //print which vertex's edge list follows
-        for (int j = 0; j < (int)adjlist[i].size(); j++) {
-            cout << adjlist[i][j] << " "; //print each item in edge list
-        }
-        cout << endl;
-    }
-};
-
-void Christofides::printCities() {
-    cout << endl;
-    int i = 0;
-    for (vector<Node>::iterator it = cities.begin(); it != cities.end(); ++it)
-        cout << i++ << ":  " << it->x << " " << it->y << endl;
-}
