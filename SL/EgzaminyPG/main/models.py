@@ -1,20 +1,29 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class PGUser(AbstractUser):
-    indeks = models.IntegerField()
+    indeks = models.IntegerField(unique=True, validators = [MinValueValidator(100000), MaxValueValidator(1000000)])
     email = models.EmailField(default="NotUsed@wp.pl")
     # is_admin = models.BooleanField(default=False)
     REQUIRED_FIELDS = ['indeks', 'email']
     def __str__(self):
         return self.username
+        
+    class Meta:
+        verbose_name = "Użytkownik PG"
+        verbose_name_plural = "Użytkownicy PG"
 
 class ExamTemplate(models.Model):
     teacher = models.ForeignKey(PGUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, default="Brak")
     image = models.ImageField(default='default.jpg', upload_to='exam_templates')
     date_modified = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Wzór egzaminu"
+        verbose_name_plural = "Wzory egzaminów"
 
     def __str__(self):
         return self.name
@@ -29,19 +38,14 @@ class Exam(models.Model):
     grade = models.IntegerField(default=0)
     date_modified = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Egzamin"
+        verbose_name_plural = "Egzaminy"
+
     def __str__(self):
-        return f"{self.student} + {self.exam_template}"
+        return self.student.username + " " + self.exam_template.name
 
     def get_absolute_url(self):
         return reverse('main-exam-detail', kwargs={'pk':self.pk})
 
-
-class Comment(models.Model):
-    user = models.ForeignKey(PGUser, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    content = models.CharField(max_length=100, default="Brak")
-    date_added = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user} + {self.content}"
 # Create your models here.
